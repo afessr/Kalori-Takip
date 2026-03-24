@@ -1,6 +1,8 @@
 <!DOCTYPE html>
 <html lang="tr">
 <head>
+<link rel="apple-touch-icon" href="icon.png">
+
  <img src="icon.png" style="
   width:120px;
   height:120px;
