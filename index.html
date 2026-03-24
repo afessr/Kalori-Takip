@@ -1,0 +1,105 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+  <meta charset="UTF-8">
+  <title>Kalori Takip</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+  <style>
+    body {
+      font-family: Arial;
+      text-align: center;
+      background: #111;
+      color: white;
+    }
+
+    input, button {
+      padding: 10px;
+      margin: 5px;
+      border-radius: 10px;
+      border: none;
+    }
+
+    button {
+      background: #00c896;
+      color: white;
+      cursor: pointer;
+    }
+
+    li {
+      margin: 10px;
+      list-style: none;
+      background: #222;
+      padding: 10px;
+      border-radius: 10px;
+    }
+  </style>
+</head>
+
+<body>
+
+  <h1>🔥 Kalori Takip</h1>
+
+  <input type="text" id="food" placeholder="Yemek adı">
+  <input type="number" id="calorie" placeholder="Kalori">
+  <br>
+  <button onclick="addFood()">Ekle</button>
+
+  <h2>Toplam Kalori: <span id="total">0</span></h2>
+
+  <ul id="list"></ul>
+
+<script>
+let total = 0;
+
+// Sayfa açılınca verileri yükle
+window.onload = function() {
+  let savedTotal = localStorage.getItem("total");
+  let savedList = localStorage.getItem("list");
+
+  if (savedTotal) {
+    total = parseInt(savedTotal);
+    document.getElementById("total").innerText = total;
+  }
+
+  if (savedList) {
+    document.getElementById("list").innerHTML = savedList;
+  }
+}
+
+// Yemek ekleme
+function addFood() {
+  let food = document.getElementById("food").value;
+  let calorie = parseInt(document.getElementById("calorie").value);
+
+  if (!food || !calorie) return;
+
+  total += calorie;
+
+  let li = document.createElement("li");
+  li.innerHTML = food + " - " + calorie + " kcal <button onclick='removeItem(this,"+calorie+")'>❌</button>";
+
+  document.getElementById("list").appendChild(li);
+
+  document.getElementById("total").innerText = total;
+
+  saveData();
+}
+
+// Silme
+function removeItem(btn, calorie) {
+  btn.parentElement.remove();
+  total -= calorie;
+  document.getElementById("total").innerText = total;
+  saveData();
+}
+
+// Kaydet
+function saveData() {
+  localStorage.setItem("total", total);
+  localStorage.setItem("list", document.getElementById("list").innerHTML);
+}
+</script>
+
+</body>
+</html>
