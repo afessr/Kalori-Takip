@@ -2,147 +2,159 @@
 <html lang="tr">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Kalori Takip Pro</title>
-
+<title>Kalori Takip Pro+</title>
 <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 
 <style>
-body {
-  font-family: Arial;
-  background: #0f172a;
-  color: white;
-  text-align: center;
+body{
+  background:#0f172a;
+  color:white;
+  font-family:sans-serif;
+  text-align:center;
+  padding:20px;
 }
 
-.container {
-  max-width: 400px;
-  margin: auto;
+h1{
+  font-size:28px;
 }
 
-input, button {
-  padding: 10px;
-  margin: 5px;
-  border-radius: 10px;
-  border: none;
+input{
+  padding:12px;
+  border-radius:10px;
+  border:none;
+  margin:5px;
+  width:40%;
 }
 
-button {
-  background: #22c55e;
-  color: white;
+button{
+  padding:12px 20px;
+  border:none;
+  border-radius:10px;
+  background:#22c55e;
+  color:white;
+  font-size:16px;
 }
 
-.card {
-  background: #1e293b;
-  padding: 10px;
-  margin: 5px;
-  border-radius: 10px;
+.card{
+  background:#1e293b;
+  margin-top:20px;
+  padding:15px;
+  border-radius:15px;
 }
 
-.delete {
-  background: red;
+.item{
+  background:#334155;
+  margin:5px;
+  padding:10px;
+  border-radius:10px;
+  display:flex;
+  justify-content:space-between;
 }
 </style>
 </head>
 
 <body>
 
-<div class="container">
+<h1>🔥 Kalori Takip Pro+</h1>
 
-<h1>🔥 Kalori Takip Pro</h1>
+<input id="yemek" placeholder="Yemek">
+<input id="kalori" type="number" placeholder="Kalori"><br>
+<button onclick="ekle()">Ekle</button>
 
-<input type="text" id="food" placeholder="Yemek">
-<input type="number" id="cal" placeholder="Kalori">
-<br>
+<div class="card">
+🎯 Hedef: <input id="hedef" type="number" value="2000" onchange="kaydet()">
+<h2 id="toplam">Toplam: 0 kcal</h2>
+</div>
 
-<button onclick="add()">Ekle</button>
+<canvas id="grafik"></canvas>
 
-<h3>🎯 Hedef: <input type="number" id="goal" placeholder="2000"></h3>
-
-<h2 id="total">Toplam: 0 kcal</h2>
-
-<canvas id="chart"></canvas>
-
-<div id="list"></div>
-
+<div class="card">
+<h3>📅 Geçmiş</h3>
+<select id="gunler" onchange="gunDegistir()"></select>
+<div id="liste"></div>
 </div>
 
 <script>
-let data = JSON.parse(localStorage.getItem("data")) || [];
-let goal = localStorage.getItem("goal") || 2000;
+let veri = JSON.parse(localStorage.getItem("kalori")) || {}
 
-document.getElementById("goal").value = goal;
+let bugun = new Date().toISOString().split("T")[0]
 
-function save() {
-  localStorage.setItem("data", JSON.stringify(data));
-  localStorage.setItem("goal", goal);
+if(!veri[bugun]){
+  veri[bugun] = { yemekler:[], hedef:2000 }
 }
 
-function add() {
-  let food = document.getElementById("food").value;
-  let cal = parseInt(document.getElementById("cal").value);
-
-  if (!food || !cal) return;
-
-  data.push({food, cal});
-  save();
-  render();
+function kaydet(){
+  localStorage.setItem("kalori", JSON.stringify(veri))
 }
 
-function del(i) {
-  data.splice(i, 1);
-  save();
-  render();
+function ekle(){
+  let yemek = document.getElementById("yemek").value
+  let kalori = Number(document.getElementById("kalori").value)
+
+  if(!yemek || !kalori) return
+
+  veri[bugun].yemekler.push({yemek,kalori})
+
+  kaydet()
+  guncelle()
 }
 
-document.getElementById("goal").oninput = function() {
-  goal = this.value;
-  save();
-  render();
-};
-
-function render() {
-  let list = document.getElementById("list");
-  list.innerHTML = "";
-
-  let total = 0;
-
-  data.forEach((item, i) => {
-    total += item.cal;
-
-    list.innerHTML += `
-      <div class="card">
-        ${item.food} - ${item.cal} kcal
-        <button class="delete" onclick="del(${i})">X</button>
-      </div>
-    `;
-  });
-
-  document.getElementById("total").innerText =
-    "Toplam: " + total + " kcal";
-
-  drawChart(total);
+function sil(i){
+  veri[bugun].yemekler.splice(i,1)
+  kaydet()
+  guncelle()
 }
 
-let chart;
+function guncelle(){
+  let liste = document.getElementById("liste")
+  liste.innerHTML=""
 
-function drawChart(total) {
-  let ctx = document.getElementById("chart");
+  let toplam=0
 
-  if (chart) chart.destroy();
+  veri[bugun].yemekler.forEach((x,i)=>{
+    toplam+=x.kalori
+    liste.innerHTML+=`
+    <div class="item">
+      ${x.yemek} - ${x.kalori} kcal
+      <button onclick="sil(${i})">X</button>
+    </div>`
+  })
 
-  chart = new Chart(ctx, {
-    type: "doughnut",
-    data: {
-      labels: ["Alınan", "Kalan"],
-      datasets: [{
-        data: [total, goal - total]
+  document.getElementById("toplam").innerText="Toplam: "+toplam+" kcal"
+
+  grafikCiz(toplam)
+  gunleriDoldur()
+}
+
+function grafikCiz(toplam){
+  let hedef = veri[bugun].hedef
+
+  new Chart(document.getElementById("grafik"),{
+    type:"doughnut",
+    data:{
+      labels:["Alınan","Kalan"],
+      datasets:[{
+        data:[toplam, hedef-toplam]
       }]
     }
-  });
+  })
 }
 
-render();
+function gunleriDoldur(){
+  let select = document.getElementById("gunler")
+  select.innerHTML=""
+
+  Object.keys(veri).reverse().forEach(g=>{
+    select.innerHTML+=`<option>${g}</option>`
+  })
+}
+
+function gunDegistir(){
+  bugun = document.getElementById("gunler").value
+  guncelle()
+}
+
+guncelle()
 </script>
 
 </body>
