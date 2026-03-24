@@ -1,7 +1,15 @@
 <!DOCTYPE html>
 <html lang="tr">
 <head>
- 
+ <img src="icon.png" style="
+  width:120px;
+  height:120px;
+  object-fit:cover;
+  border-radius:20px;
+  display:block;
+  margin:20px auto;
+  box-shadow:0 4px 10px rgba(0,0,0,0.2);
+">
 
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black">
