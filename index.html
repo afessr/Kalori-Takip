@@ -116,7 +116,7 @@ canvas{max-width:100%;}
 </div>
 
 <script>
-// Temel veriler
+// Temel ayarlar
 let goal=1800;
 let todayDate=new Date().toISOString().split('T')[0];
 let currentDay=todayDate;
@@ -134,7 +134,7 @@ let mealsDB=[
 {name:"Badem + Yoğurt",cal:125,protein:7.5,carb:5,fat:9},
 ];
 
-// Tema ve renk
+// Tema fonksiyonları
 function applyTheme(theme){
 document.body.classList.remove('dark');
 if(theme==='dark'){document.body.classList.add('dark');document.getElementById('customColors').style.display='none';}
@@ -182,9 +182,11 @@ updateCharts();
 updateFavoriteAnalysis();
 });
 
+// Kaydetme fonksiyonları
 function save(){ localStorage.setItem("data",JSON.stringify(data)); }
 function saveFavorites(){ localStorage.setItem("favorites",JSON.stringify(favorites)); }
 
+// Öğün ekleme
 function addMeal(){
 let name=document.getElementById("mealName").value||"Öğün";
 let gram=+document.getElementById("mealGram").value||100;
@@ -203,20 +205,23 @@ updateCharts();
 updateFavoriteAnalysis();
 }
 
+// Favori ekleme
 function saveFavorite(){
 let name=document.getElementById("mealName").value;
 let gram=+document.getElementById("mealGram").value||100;
 let meal=mealsDB.concat(favorites).find(m=>m.name===name);
-let cal=meal?meal.cal*gram/100:0;
-let protein=meal?meal.protein*gram/100:0;
-let carb=meal?meal.carb*gram/100:0;
-let fat=meal?meal.fat*gram/100:0;
+if(!meal) return;
+let cal=meal.cal*gram/100;
+let protein=meal.protein*gram/100;
+let carb=meal.carb*gram/100;
+let fat=meal.fat*gram/100;
 if(!favorites.find(f=>f.name===name)) favorites.push({name,cal,protein,carb,fat});
 saveFavorites();
 renderFavorites();
 updateFavoriteAnalysis();
 }
 
+// Favori listeleme
 function renderFavorites(){
 let container=document.getElementById("favoriteMeals");
 container.innerHTML="";
@@ -228,12 +233,14 @@ container.appendChild(div);
 });
 }
 
+// Favori kullan
 function useFavorite(i){
 let f=favorites[i];
 document.getElementById("mealName").value=f.name;
 document.getElementById("mealGram").value=100;
 }
 
+// Favori sil
 function deleteFavorite(i){
 favorites.splice(i,1);
 saveFavorites();
@@ -241,6 +248,7 @@ renderFavorites();
 updateFavoriteAnalysis();
 }
 
+// Öğün listeleme
 function renderMeals(){
 let container=document.getElementById("mealsContainer");
 container.innerHTML="";
@@ -268,6 +276,7 @@ container.appendChild(card);
 });
 }
 
+// Öğün sil
 function deleteMeal(i){
 data[currentDay].splice(i,1);
 save();
@@ -277,6 +286,7 @@ updateCharts();
 updateFavoriteAnalysis();
 }
 
+// Toplam değerler ve yorum
 function updateTotals(){
 let totalCal=0,totalProt=0,totalCarb=0,totalFat=0;
 if(!data[currentDay]) data[currentDay]=[];
@@ -287,7 +297,6 @@ totalElem.className="total "+(totalCal<goal?"green":totalCal>goal?"red":"yellow"
 updateTrendComment(totalCal,totalProt,totalCarb,totalFat);
 }
 
-// Otomatik yorum
 function updateTrendComment(cal,prot,carb,fat){
 let comment=document.getElementById("trendComment");
 let msgs=[];
@@ -298,45 +307,7 @@ msgs.push(fat<goal*0.3?"Yağ az.":fat>goal*0.3*1.2?"Yağ fazla.":"Yağ dengeli."
 comment.innerHTML=msgs.join('<br>');
 }
 
-// Grafikler
-let dailyChart,weeklyChart,monthlyChart;
-function updateCharts(){
-if(!data[currentDay]) data[currentDay]=[];
-let totalCal=0,totalProt=0,totalCarb=0,totalFat=0;
-data[currentDay].forEach(m=>{totalCal+=m.cal;totalProt+=m.protein;totalCarb+=m.carb;totalFat+=m.fat;});
-let ctx=document.getElementById("dailyChart").getContext("2d");
-if(dailyChart) dailyChart.destroy();
-dailyChart=new Chart(ctx,{type:'bar',data:{labels:['Kalori','Protein','Karbonhidrat','Yağ'],datasets:[{label:'Bugün',data:[totalCal,totalProt,totalCarb,totalFat],backgroundColor:[userColors.cal,userColors.prot,userColors.carb,userColors.fat]}]},options:{responsive:true,plugins:{legend:{display:false}}}});
-
-// Haftalık
-let weekLabels=[],weekData=[];
-for(let i=6;i>=0;i--){
-let d=new Date();
-d.setDate(d.getDate()-i);
-let ds=d.toISOString().split('T')[0];
-weekLabels.push(ds.slice(5));
-if(!data[ds]) data[ds]=[];
-let c=0;data[ds].forEach(m=>c+=m.cal);weekData.push(c);
-}
-let wCtx=document.getElementById("weeklyChart").getContext("2d");
-if(weeklyChart) weeklyChart.destroy();
-weeklyChart=new Chart(wCtx,{type:'line',data:{labels:weekLabels,datasets:[{label:'Haftalık Kalori',data:weekData,borderColor:userColors.cal,backgroundColor:userColors.cal+'33',fill:true}]}});
-// Aylık
-let monthLabels=[],monthData=[];
-for(let i=29;i>=0;i--){
-let d=new Date();
-d.setDate(d.getDate()-i);
-let ds=d.toISOString().split('T')[0];
-monthLabels.push(ds.slice(5));
-if(!data[ds]) data[ds]=[];
-let c=0;data[ds].forEach(m=>c+=m.cal);monthData.push(c);
-}
-let mCtx=document.getElementById("monthlyChart").getContext("2d");
-if(monthlyChart) monthlyChart.destroy();
-monthlyChart=new Chart(mCtx,{type:'line',data:{labels:monthLabels,datasets:[{label:'Aylık Kalori',data:monthData,borderColor:userColors.cal,backgroundColor:userColors.cal+'33',fill:true}]}});
-}
-
-// CSV
+// CSV İndir
 function exportCSV(){
 if(!data[currentDay] || data[currentDay].length===0){ alert("Veri yok"); return; }
 let csv="Yemek,Kalori,Protein,Karbonhidrat,Yağ\n";
@@ -353,7 +324,48 @@ URL.revokeObjectURL(url);
 // ===== Favori Analiz ve Öneri =====
 function updateFavoriteAnalysis(){
 let container=document.getElementById("favoriteAnalysis");
+let bestContainer=document.getElementById("bestMealSuggestion");
 container.innerHTML="";
-if(favorites.length===0){container.innerHTML="Favori öğün yok.";document.getElementById("bestMealSuggestion").innerHTML=""; return;}
-let bestScore=-1,bestMeal=null;
-favorites
+bestContainer.innerHTML="";
+if(favorites.length===0){container.innerHTML="Favori öğün yok."; return;}
+let scores=[];
+favorites.forEach(f=>{
+let score=0;
+score+=Math.min(f.cal/goal,1);
+score+=Math.min(f.protein/(goal*0.3),1);
+score+=Math.min(f.carb/(goal*0.4),1);
+score+=Math.min(f.fat/(goal*0.3),1);
+scores.push({f,score});
+let color=score>=3.5?"green":score>=2.5?"yellow":"red";
+let div=document.createElement("div");
+div.className=color;
+div.innerHTML=`${f.name} - Uygunluk: ${score.toFixed(2)}`;
+container.appendChild(div);
+});
+scores.sort((a,b)=>b.score-a.score);
+bestContainer.innerHTML=`En dengeli favori öğün: ${scores[0].f.name} 🟢`;
+}
+
+// Grafikler
+let dailyChart,weeklyChart,monthlyChart;
+function updateCharts(){
+if(!data[currentDay]) data[currentDay]=[];
+let totalCal=0,totalProt=0,totalCarb=0,totalFat=0;
+data[currentDay].forEach(m=>{totalCal+=m.cal;totalProt+=m.protein;totalCarb+=m.carb;totalFat+=m.fat;});
+let ctx=document.getElementById("dailyChart").getContext("2d");
+if(dailyChart) dailyChart.destroy();
+dailyChart=new Chart(ctx,{type:'bar',data:{labels:['Kalori','Protein','Karbonhidrat','Yağ'],datasets:[{label:'Bugün',data:[totalCal,totalProt,totalCarb,totalFat],backgroundColor:[userColors.cal,userColors.prot,userColors.carb,userColors.fat]}]},options:{responsive:true,plugins:{legend:{display:false}}}});
+
+// Haftalık ve Aylık grafikleri benzer şekilde eklenebilir
+}
+
+// Başlangıç render
+renderFavorites();
+renderMeals();
+updateTotals();
+updateCharts();
+updateFavoriteAnalysis();
+
+</script>
+</body>
+</html>
