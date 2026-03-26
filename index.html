@@ -19,12 +19,10 @@ button:hover{opacity:0.85;}
 .suggestions{border:1px solid #ccc;background:#fff;max-height:120px;overflow-y:auto;position:absolute;width:calc(100% - 16px);z-index:100;}
 .suggestions div{padding:4px;cursor:pointer;}
 .suggestions div:hover{background:#0a84ff;color:#fff;}
-.green{background:#34c759;}
-.yellow{background:#ffcc00;}
-.red{background:#ff3b30;}
+.green{background:#34c759;color:#fff;}
+.yellow{background:#ffcc00;color:#222;}
+.red{background:#ff3b30;color:#fff;}
 .comment{margin:3px 0;padding:4px;border-radius:6px;background:#f0f0f0;font-size:0.85rem;}
-.dark body{background:#222;color:#eee;}
-.dark .card{background:#333;color:#eee;}
 </style>
 </head>
 <body>
@@ -103,6 +101,7 @@ renderMeals();
 updateTotals();
 updateCharts();
 updateFavoriteAnalysis();
+hideSuggestion();
 });
 
 function showSuggestions(){
@@ -138,6 +137,7 @@ renderMeals();
 updateTotals();
 updateCharts();
 updateFavoriteAnalysis();
+hideSuggestion();
 }
 
 function saveFavorite(){
@@ -171,6 +171,7 @@ let f=favorites[i];
 document.getElementById("mealName").value=f.name;
 document.getElementById("mealGram").value=100;
 document.getElementById("mealPortion").value=1;
+hideSuggestion();
 }
 
 function deleteFavorite(i){
@@ -178,6 +179,7 @@ favorites.splice(i,1);
 saveFavorites();
 renderFavorites();
 updateFavoriteAnalysis();
+hideSuggestion();
 }
 
 function renderMeals(){
@@ -214,6 +216,7 @@ renderMeals();
 updateTotals();
 updateCharts();
 updateFavoriteAnalysis();
+hideSuggestion();
 }
 
 function updateTotals(){
@@ -278,6 +281,7 @@ if(!meal) return;
 document.getElementById("mealName").value=meal.name;
 document.getElementById("mealGram").value=100;
 document.getElementById("mealPortion").value=1;
+hideSuggestion();
 }
 
 function hideSuggestion(){document.getElementById("bestMealSuggestion").innerHTML="";}
@@ -299,6 +303,7 @@ renderMeals();
 updateTotals();
 updateCharts();
 updateFavoriteAnalysis();
+hideSuggestion();
 </script>
 </body>
 </html>
