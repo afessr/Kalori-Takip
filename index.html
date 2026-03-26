@@ -4,77 +4,401 @@
   <meta charset="UTF-8">
   <title>OMAD Kalori Takip</title>
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=DM+Sans:wght@400;500;600&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --bg: #0f0f0f;
+      --card: #1a1a1a;
+      --border: #2a2a2a;
+      --accent: #ff4d00;
+      --accent2: #ff8c00;
+      --text: #f0f0f0;
+      --muted: #888;
+      --success: #00c896;
+      --danger: #ff3b30;
+      --protein: #4dabf7;
+      --carb: #ffd43b;
+      --fat: #ff8c00;
+    }
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      background: var(--bg);
+      color: var(--text);
+      font-family: 'DM Sans', sans-serif;
+      min-height: 100vh;
+      padding: 24px 16px 48px;
+    }
+    header { text-align: center; margin-bottom: 28px; }
+    header h1 {
+      font-family: 'Bebas Neue', sans-serif;
+      font-size: 3rem;
+      letter-spacing: 3px;
+      background: linear-gradient(135deg, var(--accent), var(--accent2));
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+    }
+    header p { color: var(--muted); font-size: 0.8rem; margin-top: 4px; letter-spacing: 1px; text-transform: uppercase; }
+    .container { max-width: 480px; margin: 0 auto; }
+
+    /* Goal Bar */
+    .goal-bar { background: var(--card); border: 1px solid var(--border); border-radius: 16px; padding: 20px; margin-bottom: 16px; }
+    .goal-bar-top { display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px; }
+    .goal-bar-top span { font-size: 0.75rem; color: var(--muted); text-transform: uppercase; letter-spacing: 1px; }
+    .goal-numbers { font-family: 'Bebas Neue', sans-serif; font-size: 2rem; letter-spacing: 2px; }
+    .goal-numbers em { font-style: normal; color: var(--accent); }
+    .goal-numbers small { font-size: 1rem; color: var(--muted); }
+    .progress-track { background: var(--border); border-radius: 999px; height: 8px; overflow: hidden; }
+    .progress-fill { height: 100%; border-radius: 999px; background: linear-gradient(90deg, var(--accent), var(--accent2)); transition: width 0.4s ease; width: 0%; }
+    .progress-fill.over { background: var(--danger); }
+    .goal-input-row { display: flex; gap: 8px; margin-top: 12px; }
+    .goal-input-row input { flex: 1; background: var(--bg); border: 1px solid var(--border); border-radius: 10px; color: var(--text); font-family: 'DM Sans', sans-serif; font-size: 0.9rem; padding: 10px 14px; outline: none; transition: border-color 0.2s; }
+    .goal-input-row input:focus { border-color: var(--accent); }
+    .goal-input-row button { background: var(--border); border: none; border-radius: 10px; color: var(--text); cursor: pointer; font-family: 'DM Sans', sans-serif; font-size: 0.85rem; font-weight: 600; padding: 10px 16px; transition: background 0.2s; }
+    .goal-input-row button:hover { background: #333; }
+
+    /* Macro Summary */
+    .macro-summary { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; margin-bottom: 16px; }
+    .macro-box { background: var(--card); border: 1px solid var(--border); border-radius: 12px; padding: 12px; text-align: center; }
+    .macro-box .macro-val { font-family: 'Bebas Neue', sans-serif; font-size: 1.4rem; letter-spacing: 1px; }
+    .macro-box .macro-lbl { font-size: 0.7rem; color: var(--muted); text-transform: uppercase; letter-spacing: 1px; margin-top: 2px; }
+    .macro-box.protein .macro-val { color: var(--protein); }
+    .macro-box.carb .macro-val { color: var(--carb); }
+    .macro-box.fat .macro-val { color: var(--fat); }
+
+    /* Form */
+    .form-card { background: var(--card); border: 1px solid var(--border); border-radius: 16px; padding: 20px; margin-bottom: 16px; position: relative; }
+    .form-card label { display: block; font-size: 0.75rem; color: var(--muted); text-transform: uppercase; letter-spacing: 1px; margin-bottom: 6px; }
+    .form-card input[type="text"],
+    .form-card input[type="number"] { width: 100%; background: var(--bg); border: 1px solid var(--border); border-radius: 10px; color: var(--text); font-family: 'DM Sans', sans-serif; font-size: 1rem; padding: 12px 14px; outline: none; transition: border-color 0.2s; margin-bottom: 14px; }
+    .form-card input:focus { border-color: var(--accent); }
+
+    /* AI Status */
+    .ai-status { font-size: 0.8rem; color: var(--muted); margin-bottom: 14px; display: none; align-items: center; gap: 8px; }
+    .ai-status.visible { display: flex; }
+    .spinner { width: 14px; height: 14px; border: 2px solid var(--border); border-top-color: var(--accent); border-radius: 50%; animation: spin 0.7s linear infinite; }
+    @keyframes spin { to { transform: rotate(360deg); } }
+
+    /* Macro Preview */
+    .macro-preview { display: none; background: #111; border: 1px solid var(--border); border-radius: 12px; padding: 14px 16px; margin-bottom: 14px; flex-wrap: wrap; gap: 10px; align-items: center; }
+    .macro-preview.visible { display: flex; }
+    .mp-item { font-size: 0.82rem; }
+    .mp-label { color: var(--muted); }
+    .mp-val { font-weight: 600; margin-left: 4px; }
+    .mp-kcal { color: var(--accent); }
+    .mp-p { color: var(--protein); }
+    .mp-c { color: var(--carb); }
+    .mp-f { color: var(--fat); }
+
+    /* Suggestions */
+    #suggestions { position: absolute; left: 20px; right: 20px; background: #222; border: 1px solid var(--border); border-radius: 10px; z-index: 99; overflow: hidden; box-shadow: 0 8px 24px rgba(0,0,0,0.5); }
+    .suggestion-item { padding: 10px 14px; cursor: pointer; font-size: 0.9rem; transition: background 0.15s; border-bottom: 1px solid var(--border); }
+    .suggestion-item:last-child { border-bottom: none; }
+    .suggestion-item:hover { background: var(--border); }
+
+    /* Add Button */
+    .add-btn { width: 100%; background: linear-gradient(135deg, var(--accent), var(--accent2)); border: none; border-radius: 12px; color: #fff; cursor: pointer; font-family: 'Bebas Neue', sans-serif; font-size: 1.2rem; letter-spacing: 2px; padding: 14px; transition: opacity 0.2s, transform 0.1s; }
+    .add-btn:hover { opacity: 0.9; }
+    .add-btn:active { transform: scale(0.98); }
+    .add-btn:disabled { opacity: 0.4; cursor: not-allowed; transform: none; }
+
+    /* List */
+    .list-card { background: var(--card); border: 1px solid var(--border); border-radius: 16px; overflow: hidden; }
+    .list-header { padding: 16px 20px; border-bottom: 1px solid var(--border); display: flex; justify-content: space-between; align-items: center; }
+    .list-header span { font-size: 0.75rem; color: var(--muted); text-transform: uppercase; letter-spacing: 1px; }
+    .clear-btn { background: none; border: 1px solid var(--border); border-radius: 8px; color: var(--danger); cursor: pointer; font-family: 'DM Sans', sans-serif; font-size: 0.75rem; padding: 4px 10px; transition: background 0.2s; }
+    .clear-btn:hover { background: rgba(255,59,48,0.1); }
+    #list { list-style: none; }
+    .food-item { padding: 14px 20px; border-bottom: 1px solid var(--border); animation: slideIn 0.25s ease; }
+    .food-item:last-child { border-bottom: none; }
+    @keyframes slideIn { from { opacity: 0; transform: translateY(-8px); } to { opacity: 1; transform: translateY(0); } }
+    .food-item-top { display: flex; justify-content: space-between; align-items: center; }
+    .food-name { font-size: 0.95rem; font-weight: 500; }
+    .food-gram { font-size: 0.75rem; color: var(--muted); margin-left: 6px; }
+    .food-right { display: flex; align-items: center; gap: 12px; }
+    .food-kcal { font-family: 'Bebas Neue', sans-serif; font-size: 1.1rem; color: var(--accent); letter-spacing: 1px; }
+    .food-macros { display: flex; gap: 10px; margin-top: 6px; }
+    .food-macros span { font-size: 0.75rem; }
+    .fm-p { color: var(--protein); }
+    .fm-c { color: var(--carb); }
+    .fm-f { color: var(--fat); }
+    .delete-btn { background: none; border: none; color: var(--muted); cursor: pointer; font-size: 1rem; line-height: 1; padding: 4px; border-radius: 6px; transition: color 0.2s, background 0.2s; }
+    .delete-btn:hover { color: var(--danger); background: rgba(255,59,48,0.1); }
+    .empty-msg { text-align: center; padding: 32px; color: var(--muted); font-size: 0.85rem; }
+
+    /* Toast */
+    .toast { position: fixed; bottom: 24px; left: 50%; transform: translateX(-50%) translateY(80px); background: var(--success); color: #000; font-weight: 600; font-size: 0.85rem; padding: 10px 20px; border-radius: 999px; transition: transform 0.3s ease; z-index: 999; }
+    .toast.show { transform: translateX(-50%) translateY(0); }
+  </style>
 </head>
 <body>
+<div class="container">
+  <header>
+    <h1>🔥 OMAD TRACKER</h1>
+    <p>AI destekli kalori & makro takibi</p>
+  </header>
 
-<h1>🔥 OMAD Kalori Takip</h1>
+  <!-- Hedef -->
+  <div class="goal-bar">
+    <div class="goal-bar-top">
+      <span>Günlük Hedef</span>
+      <div class="goal-numbers">
+        <em id="totalDisplay">0</em>
+        <small id="goalDisplay"> / 2000 kcal</small>
+      </div>
+    </div>
+    <div class="progress-track"><div class="progress-fill" id="progressFill"></div></div>
+    <div class="goal-input-row">
+      <input type="number" id="goalInput" placeholder="Hedef kalori (örn. 2000)" min="1">
+      <button onclick="setGoal()">Kaydet</button>
+    </div>
+  </div>
 
-<input type="text" id="food" placeholder="Yemek adı">
-<div id="suggestions" style="border:1px solid #ccc; margin-bottom:10px;"></div>
+  <!-- Makro Özet -->
+  <div class="macro-summary">
+    <div class="macro-box protein"><div class="macro-val" id="totalProtein">0g</div><div class="macro-lbl">Protein</div></div>
+    <div class="macro-box carb"><div class="macro-val" id="totalCarb">0g</div><div class="macro-lbl">Karbonhidrat</div></div>
+    <div class="macro-box fat"><div class="macro-val" id="totalFat">0g</div><div class="macro-lbl">Yağ</div></div>
+  </div>
 
-<input type="number" id="calorie" placeholder="Kalori">
-<button onclick="addFood()">Ekle</button>
+  <!-- Form -->
+  <div class="form-card">
+    <label>Yemek Adı</label>
+    <input type="text" id="food" placeholder="Örn: tavuk göğsü, pirinç, yumurta..." autocomplete="off">
+    <div id="suggestions"></div>
 
-<ul id="list"></ul>
+    <label>Gram Miktarı</label>
+    <input type="number" id="grams" placeholder="Kaç gram?" min="1">
 
-<h3>Toplam Kalori: <span id="total">0</span></h3>
+    <div class="ai-status" id="aiStatus">
+      <div class="spinner"></div>
+      <span>AI besin değerlerini hesaplıyor...</span>
+    </div>
+
+    <div class="macro-preview" id="macroPreview">
+      <div class="mp-item"><span class="mp-label">Kalori:</span><span class="mp-val mp-kcal" id="pvKcal">-</span></div>
+      <div class="mp-item"><span class="mp-label">Protein:</span><span class="mp-val mp-p" id="pvProt">-</span></div>
+      <div class="mp-item"><span class="mp-label">Karb:</span><span class="mp-val mp-c" id="pvCarb">-</span></div>
+      <div class="mp-item"><span class="mp-label">Yağ:</span><span class="mp-val mp-f" id="pvFat">-</span></div>
+    </div>
+
+    <button class="add-btn" id="addBtn" onclick="addFood()">+ EKLE</button>
+  </div>
+
+  <!-- Liste -->
+  <div class="list-card">
+    <div class="list-header">
+      <span>Eklenen Yemekler</span>
+      <button class="clear-btn" onclick="clearAll()">Tümünü Sil</button>
+    </div>
+    <ul id="list">
+      <li class="empty-msg">Henüz yemek eklenmedi 🍽️</li>
+    </ul>
+  </div>
+</div>
+
+<div class="toast" id="toast"></div>
 
 <script>
-let total = 0;
+  let foods = JSON.parse(localStorage.getItem("omad_foods") || "[]");
+  let goal = parseInt(localStorage.getItem("omad_goal") || "2000");
+  let currentMacros = null;
+  let aiDebounce = null;
 
-const suggestionsList = [
-  "Tavuk + Pirinç",
-  "Ton Balığı + Pirinç",
-  "Yumurta + Lor",
-  "Tavuk + Patates",
-  "Lor + Yulaf"
-];
+  document.getElementById("goalInput").value = goal;
+  renderList();
+  updateTotals();
 
-document.getElementById("food").addEventListener("input", function() {
-  const input = this.value.toLowerCase();
-  const box = document.getElementById("suggestions");
+  // Enter desteği
+  document.getElementById("food").addEventListener("keydown", e => { if (e.key === "Enter") document.getElementById("grams").focus(); });
+  document.getElementById("grams").addEventListener("keydown", e => { if (e.key === "Enter") addFood(); });
 
-  box.innerHTML = "";
-
-  if (!input) return;
-
-  const filtered = suggestionsList.filter(item =>
-    item.toLowerCase().includes(input)
-  );
-
-  filtered.forEach(item => {
-    const div = document.createElement("div");
-    div.textContent = item;
-    div.style.padding = "8px";
-    div.style.cursor = "pointer";
-
-    div.onclick = () => {
-      document.getElementById("food").value = item;
-      box.innerHTML = "";
-    };
-
-    box.appendChild(div);
+  // Yemek adı değişince
+  document.getElementById("food").addEventListener("input", function () {
+    currentMacros = null;
+    document.getElementById("macroPreview").classList.remove("visible");
+    clearTimeout(aiDebounce);
+    const val = this.value.trim();
+    if (val.length < 2) return;
+    aiDebounce = setTimeout(() => {
+      const grams = parseInt(document.getElementById("grams").value);
+      if (grams > 0) fetchMacros(val, grams);
+    }, 700);
   });
-});
 
-function addFood() {
-  const food = document.getElementById("food").value;
-  const calorie = parseInt(document.getElementById("calorie").value);
+  // Gram değişince
+  document.getElementById("grams").addEventListener("input", function () {
+    const grams = parseInt(this.value);
+    const food = document.getElementById("food").value.trim();
+    currentMacros = null;
+    document.getElementById("macroPreview").classList.remove("visible");
+    if (!food || food.length < 2 || !grams || grams <= 0) return;
+    clearTimeout(aiDebounce);
+    aiDebounce = setTimeout(() => fetchMacros(food, grams), 500);
+  });
 
-  if (!food || !calorie) return;
+  // Öneri kapat
+  document.addEventListener("click", function (e) {
+    if (!e.target.closest("#suggestions") && e.target.id !== "food") {
+      document.getElementById("suggestions").innerHTML = "";
+    }
+  });
+  document.getElementById("food").addEventListener("blur", function () {
+    setTimeout(() => { document.getElementById("suggestions").innerHTML = ""; }, 150);
+  });
 
-  const li = document.createElement("li");
-  li.textContent = food + " - " + calorie + " kcal";
-  document.getElementById("list").appendChild(li);
+  async function fetchMacros(foodName, grams) {
+    document.getElementById("aiStatus").classList.add("visible");
+    document.getElementById("addBtn").disabled = true;
 
-  total += calorie;
-  document.getElementById("total").textContent = total;
+    try {
+      const response = await fetch("https://api.anthropic.com/v1/messages", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          model: "claude-sonnet-4-20250514",
+          max_tokens: 200,
+          messages: [{
+            role: "user",
+            content: `Besin: "${foodName}", miktar: ${grams} gram. 100 gram için ortalama besin değerlerini kullanarak ${grams} gram için hesapla. Sadece JSON döndür, başka hiçbir şey yazma: {"kalori": sayı, "protein": sayı, "karbonhidrat": sayı, "yag": sayı} Tüm değerler tam sayı olsun.`
+          }]
+        })
+      });
 
-  document.getElementById("food").value = "";
-  document.getElementById("calorie").value = "";
-  document.getElementById("suggestions").innerHTML = "";
-}
+      const data = await response.json();
+      const text = data.content.map(i => i.text || "").join("").trim();
+      const clean = text.replace(/```json|```/g, "").trim();
+      const parsed = JSON.parse(clean);
+
+      currentMacros = {
+        cal: Math.round(parsed.kalori),
+        protein: Math.round(parsed.protein),
+        carb: Math.round(parsed.karbonhidrat),
+        fat: Math.round(parsed.yag)
+      };
+
+      document.getElementById("pvKcal").textContent = currentMacros.cal + " kcal";
+      document.getElementById("pvProt").textContent = currentMacros.protein + "g";
+      document.getElementById("pvCarb").textContent = currentMacros.carb + "g";
+      document.getElementById("pvFat").textContent = currentMacros.fat + "g";
+      document.getElementById("macroPreview").classList.add("visible");
+
+    } catch (err) {
+      showToast("⚠️ AI bağlanamadı", "#ff4d00");
+    }
+
+    document.getElementById("aiStatus").classList.remove("visible");
+    document.getElementById("addBtn").disabled = false;
+  }
+
+  function addFood() {
+    const food = document.getElementById("food").value.trim();
+    const grams = parseInt(document.getElementById("grams").value);
+
+    if (!food) { showToast("❗ Yemek adı gir!", "#ff4d00"); return; }
+    if (!grams || grams <= 0) { showToast("❗ Gram miktarı gir!", "#ff4d00"); return; }
+    if (!currentMacros) { showToast("⏳ Önce gram gir, AI hesaplasın", "#ff8c00"); return; }
+
+    const item = { id: Date.now(), name: food, grams, ...currentMacros };
+    foods.push(item);
+    saveData();
+    renderList();
+    updateTotals();
+
+    document.getElementById("food").value = "";
+    document.getElementById("grams").value = "";
+    document.getElementById("macroPreview").classList.remove("visible");
+    document.getElementById("suggestions").innerHTML = "";
+    currentMacros = null;
+
+    showToast("✅ Eklendi!");
+  }
+
+  function deleteFood(id) {
+    foods = foods.filter(f => f.id !== id);
+    saveData();
+    renderList();
+    updateTotals();
+  }
+
+  function clearAll() {
+    if (foods.length === 0) return;
+    if (!confirm("Tüm yemekleri silmek istiyor musun?")) return;
+    foods = [];
+    saveData();
+    renderList();
+    updateTotals();
+  }
+
+  function setGoal() {
+    const val = parseInt(document.getElementById("goalInput").value);
+    if (!val || val <= 0) { showToast("❗ Geçerli hedef gir!", "#ff4d00"); return; }
+    goal = val;
+    localStorage.setItem("omad_goal", goal);
+    updateTotals();
+    showToast("🎯 Hedef kaydedildi!");
+  }
+
+  function renderList() {
+    const ul = document.getElementById("list");
+    ul.innerHTML = "";
+    if (foods.length === 0) {
+      const li = document.createElement("li");
+      li.className = "empty-msg";
+      li.textContent = "Henüz yemek eklenmedi 🍽️";
+      ul.appendChild(li);
+      return;
+    }
+    foods.forEach(f => {
+      const li = document.createElement("li");
+      li.className = "food-item";
+      li.innerHTML = `
+        <div class="food-item-top">
+          <span class="food-name">${f.name}<span class="food-gram">${f.grams}g</span></span>
+          <div class="food-right">
+            <span class="food-kcal">${f.cal} kcal</span>
+            <button class="delete-btn" onclick="deleteFood(${f.id})">✕</button>
+          </div>
+        </div>
+        <div class="food-macros">
+          <span class="fm-p">P: ${f.protein}g</span>
+          <span class="fm-c">K: ${f.carb}g</span>
+          <span class="fm-f">Y: ${f.fat}g</span>
+        </div>`;
+      ul.appendChild(li);
+    });
+  }
+
+  function updateTotals() {
+    const totalCal  = foods.reduce((s, f) => s + f.cal, 0);
+    const totalProt = foods.reduce((s, f) => s + (f.protein || 0), 0);
+    const totalCarb = foods.reduce((s, f) => s + (f.carb || 0), 0);
+    const totalFat  = foods.reduce((s, f) => s + (f.fat || 0), 0);
+
+    document.getElementById("totalDisplay").textContent = totalCal;
+    document.getElementById("goalDisplay").textContent = ` / ${goal} kcal`;
+    document.getElementById("totalProtein").textContent = totalProt + "g";
+    document.getElementById("totalCarb").textContent = totalCarb + "g";
+    document.getElementById("totalFat").textContent = totalFat + "g";
+
+    const pct = Math.min((totalCal / goal) * 100, 100);
+    const fill = document.getElementById("progressFill");
+    fill.style.width = pct + "%";
+    fill.classList.toggle("over", totalCal > goal);
+  }
+
+  function saveData() {
+    localStorage.setItem("omad_foods", JSON.stringify(foods));
+  }
+
+  function showToast(msg, color = "#00c896") {
+    const t = document.getElementById("toast");
+    t.textContent = msg;
+    t.style.background = color;
+    t.style.color = (color === "#ff4d00" || color === "#ff8c00") ? "#fff" : "#000";
+    t.classList.add("show");
+    setTimeout(() => t.classList.remove("show"), 2200);
+  }
 </script>
-
 </body>
 </html>
