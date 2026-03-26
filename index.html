@@ -42,11 +42,44 @@ button{
 
 <body>
   <div id="splash">
-  <div>
-    <h1>🔥</h1>
-    <p>Kalori Takip Pro</p>
-  </div>
+  <div class="spinner"></div>
+  <p>Kalori Takip Pro</p>
 </div>
+
+<style>
+#splash{
+  position:fixed;
+  top:0;
+  left:0;
+  width:100%;
+  height:100%;
+  background:#111;
+  display:flex;
+  justify-content:center;
+  align-items:center;
+  flex-direction:column;
+  z-index:9999;
+}
+#splash p{
+  color:#fff;
+  margin-top:15px;
+  font-size:20px;
+  opacity:0.8;
+}
+/* Spinner */
+.spinner{
+  border: 6px solid #1c1c1e;
+  border-top: 6px solid #0a84ff;
+  border-radius: 50%;
+  width:50px;
+  height:50px;
+  animation: spin 1s linear infinite;
+}
+@keyframes spin{
+  0% { transform: rotate(0deg); }
+  100% { transform: rotate(360deg); }
+}
+</style>
 
 <style>
 #splash{
