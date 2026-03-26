@@ -60,44 +60,8 @@ button{margin:3px 2px;padding:4px;}
 <!-- Hazır Yemekler -->
 <div class="card">
 <h3>⚡ Hazır Yemekler</h3>
-
-<!-- 5 hazır yemek slotu -->
-<input id="quickName1" placeholder="Yemek 1 adı">
-<input id="quickCal1" type="number" placeholder="Kalori">
-<input id="quickP1" type="number" placeholder="Protein">
-<input id="quickC1" type="number" placeholder="Karbonhidrat">
-<input id="quickF1" type="number" placeholder="Yağ">
-<button onclick="quickAddCustom(1)">Ekle</button>
-
-<input id="quickName2" placeholder="Yemek 2 adı">
-<input id="quickCal2" type="number" placeholder="Kalori">
-<input id="quickP2" type="number" placeholder="Protein">
-<input id="quickC2" type="number" placeholder="Karbonhidrat">
-<input id="quickF2" type="number" placeholder="Yağ">
-<button onclick="quickAddCustom(2)">Ekle</button>
-
-<input id="quickName3" placeholder="Yemek 3 adı">
-<input id="quickCal3" type="number" placeholder="Kalori">
-<input id="quickP3" type="number" placeholder="Protein">
-<input id="quickC3" type="number" placeholder="Karbonhidrat">
-<input id="quickF3" type="number" placeholder="Yağ">
-<button onclick="quickAddCustom(3)">Ekle</button>
-
-<input id="quickName4" placeholder="Yemek 4 adı">
-<input id="quickCal4" type="number" placeholder="Kalori">
-<input id="quickP4" type="number" placeholder="Protein">
-<input id="quickC4" type="number" placeholder="Karbonhidrat">
-<input id="quickF4" type="number" placeholder="Yağ">
-<button onclick="quickAddCustom(4)">Ekle</button>
-
-<input id="quickName5" placeholder="Yemek 5 adı">
-<input id="quickCal5" type="number" placeholder="Kalori">
-<input id="quickP5" type="number" placeholder="Protein">
-<input id="quickC5" type="number" placeholder="Karbonhidrat">
-<input id="quickF5" type="number" placeholder="Yağ">
-<button onclick="quickAddCustom(5)">Ekle</button>
-
-<br><button onclick="addAllQuick()">Tümünü Tek Tıkla Ekle</button>
+<div id="quickContainer"></div>
+<button onclick="addAllQuick()">Tümünü Tek Tıkla Ekle</button>
 </div>
 
 <div class="card">
@@ -135,59 +99,69 @@ let omad = JSON.parse(localStorage.getItem("omad")) || false;
 let currentDay = todayDate;
 if(!data[currentDay]) data[currentDay]=[];
 
-// Hazır yemekler
+// Hazır yemekler localStorage
 let quickMeals = JSON.parse(localStorage.getItem("quickMeals")) || [
-  {name:"",cal:0,protein:0,carb:0,fat:0},
-  {name:"",cal:0,protein:0,carb:0,fat:0},
-  {name:"",cal:0,protein:0,carb:0,fat:0},
-  {name:"",cal:0,protein:0,carb:0,fat:0},
-  {name:"",cal:0,protein:0,carb:0,fat:0},
+  {name:"Tavuk + Pirinç",cal:500,protein:40,carb:50,fat:10},
+  {name:"Ton Balığı Salata",cal:350,protein:35,carb:10,fat:15},
+  {name:"Yumurta + Lor",cal:300,protein:25,carb:5,fat:15},
+  {name:"Lor Peynirli Sandviç",cal:400,protein:30,carb:35,fat:12},
+  {name:"Badem + Yoğurt",cal:250,protein:15,carb:10,fat:18},
 ];
 
-function loadQuickMeals(){
+function saveQuickMeals(){ localStorage.setItem("quickMeals", JSON.stringify(quickMeals)); }
+function save(){ localStorage.setItem("data", JSON.stringify(data)); localStorage.setItem("omad", JSON.stringify(omad)); }
+
+// Hazır yemekleri göster ve editable yap
+function renderQuickMeals(){
+  quickContainer.innerHTML="";
   quickMeals.forEach((m,i)=>{
-    document.getElementById("quickName"+(i+1)).value = m.name;
-    document.getElementById("quickCal"+(i+1)).value = m.cal;
-    document.getElementById("quickP"+(i+1)).value = m.protein;
-    document.getElementById("quickC"+(i+1)).value = m.carb;
-    document.getElementById("quickF"+(i+1)).value = m.fat;
+    quickContainer.innerHTML+=`
+      <div style="margin-bottom:5px;">
+        <input id="qName${i}" value="${m.name}">
+        <input id="qCal${i}" type="number" value="${m.cal}" style="width:60px">
+        <input id="qP${i}" type="number" value="${m.protein}" style="width:50px">
+        <input id="qC${i}" type="number" value="${m.carb}" style="width:50px">
+        <input id="qF${i}" type="number" value="${m.fat}" style="width:50px">
+        <button onclick="saveQuick(${i})">💾 Kaydet</button>
+        <button onclick="quickAdd(${i})">➕ Ekle</button>
+      </div>
+    `;
   });
 }
 
-function saveQuickMeals(){ localStorage.setItem("quickMeals", JSON.stringify(quickMeals)); }
+// Kaydet
+function saveQuick(i){
+  let name=document.getElementById("qName"+i).value;
+  let cal=+document.getElementById("qCal"+i).value;
+  let p=+document.getElementById("qP"+i).value;
+  let c=+document.getElementById("qC"+i).value;
+  let f=+document.getElementById("qF"+i).value;
+  quickMeals[i]={name:name,cal:cal,protein:p,carb:c,fat:f};
+  saveQuickMeals();
+  renderQuickMeals();
+}
 
-function save(){ localStorage.setItem("data", JSON.stringify(data)); localStorage.setItem("omad", JSON.stringify(omad)); }
+// Tek tıkla ekle
+function quickAdd(i){
+  let m=quickMeals[i];
+  if(m.name && !isNaN(m.cal)) {
+    data[currentDay].push({...m});
+    save(); render();
+  }
+}
+
+// Tümünü tek tıkla ekle
+function addAllQuick(){
+  quickMeals.forEach(m=>{
+    if(m.name && !isNaN(m.cal)) data[currentDay].push({...m});
+  });
+  save(); render();
+}
 
 function addFood(){
   let item={name:food.value,cal:+cal.value,protein:+protein.value,carb:+carb.value,fat:+fat.value};
   data[currentDay].push(item);
-  save();
-  render();
-}
-
-function quickAddCustom(num){
-  let name=document.getElementById("quickName"+num).value;
-  let cal=+document.getElementById("quickCal"+num).value;
-  let p=+document.getElementById("quickP"+num).value;
-  let c=+document.getElementById("quickC"+num).value;
-  let f=+document.getElementById("quickF"+num).value;
-
-  if(name && !isNaN(cal)){
-    data[currentDay].push({name:name, cal:cal, protein:p, carb:c, fat:f});
-    quickMeals[num-1]={name:name,cal:cal,protein:p,carb:c,fat:f};
-    saveQuickMeals();
-    save();
-    render();
-  } else { alert("Yemek adı ve kalori girilmeli!"); }
-}
-
-// Tek tıkla tüm hazır yemekleri ekle
-function addAllQuick(){
-  quickMeals.forEach((m,i)=>{
-    if(m.name && m.cal>0) data[currentDay].push({...m});
-  });
-  save();
-  render();
+  save(); render();
 }
 
 function deleteFood(i){ data[currentDay].splice(i,1); save(); render(); }
@@ -224,7 +198,7 @@ function drawChart(p,c,f){
 }
 
 // Sayfa açılırken hazır yemekleri yükle
-loadQuickMeals();
+renderQuickMeals();
 
 // Splash spinner
 setTimeout(()=>{
