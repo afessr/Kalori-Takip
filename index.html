@@ -2,7 +2,7 @@
 <html lang="tr">
 <head>
 <meta charset="UTF-8">
-<title>OMAD Mobil Dashboard</title>
+<title>OMAD Dashboard</title>
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 <style>
@@ -27,7 +27,7 @@ button:hover{opacity:0.85;}
 </head>
 <body>
 
-<h2>🔥 OMAD Mobil Dashboard</h2>
+<h2>🔥 OMAD Dashboard</h2>
 
 <div class="card">
 <h3>Gün Seçimi</h3>
@@ -37,7 +37,7 @@ button:hover{opacity:0.85;}
 <div class="card">
 <h3>Öğün Ekle</h3>
 <div class="relative">
-<input id="mealName" placeholder="Örn: Tavuk + Pirinç" oninput="showSuggestions(); hideSuggestion();">
+<input id="mealName" placeholder="Örn: Tavuk + Pirinç">
 <div id="suggestions" class="suggestions"></div>
 </div>
 <input type="number" id="mealGram" value="100" placeholder="Gram">
@@ -104,6 +104,12 @@ updateFavoriteAnalysis();
 hideSuggestion();
 });
 
+// 🔹 Burada en kritik değişiklik: mealName input listener
+document.getElementById("mealName").addEventListener("input",()=>{
+    hideSuggestion(); // bestMealSuggestion kaybolur
+    showSuggestions(); // inputa göre öneriler gösterilir
+});
+
 function showSuggestions(){
 let input=document.getElementById("mealName").value.toLowerCase();
 let suggestions=document.getElementById("suggestions");
@@ -137,7 +143,7 @@ renderMeals();
 updateTotals();
 updateCharts();
 updateFavoriteAnalysis();
-hideSuggestion();
+hideSuggestion(); // ekleme sonrası gizle
 }
 
 function saveFavorite(){
@@ -153,7 +159,7 @@ if(!favorites.find(f=>f.name===name)) favorites.push({name,cal,protein,carb,fat}
 saveFavorites();
 renderFavorites();
 updateFavoriteAnalysis();
-hideSuggestion();
+hideSuggestion(); // favori ekleme sonrası gizle
 }
 
 function renderFavorites(){
@@ -172,7 +178,7 @@ let f=favorites[i];
 document.getElementById("mealName").value=f.name;
 document.getElementById("mealGram").value=100;
 document.getElementById("mealPortion").value=1;
-hideSuggestion();
+hideSuggestion(); // favori kullanınca gizle
 }
 
 function deleteFavorite(i){
@@ -180,7 +186,7 @@ favorites.splice(i,1);
 saveFavorites();
 renderFavorites();
 updateFavoriteAnalysis();
-hideSuggestion();
+hideSuggestion(); // favori silince gizle
 }
 
 function renderMeals(){
@@ -250,7 +256,6 @@ let a=document.createElement("a");
 a.href=url;a.download=`OMAD_${currentDay}.csv`;a.click();URL.revokeObjectURL(url);
 }
 
-// Favori Analiz ve Öneri
 function updateFavoriteAnalysis(){
 let container=document.getElementById("favoriteAnalysis");
 let bestContainer=document.getElementById("bestMealSuggestion");
