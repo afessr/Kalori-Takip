@@ -1,0 +1,8 @@
+{
+  "name": "Kalori Takip",
+  "short_name": "Kalori",
+  "start_url": "index.html",
+  "display": "standalone",
+  "background_color": "#ffffff",
+  "theme_color": "#000000"
+}
