@@ -2,150 +2,190 @@
 <html lang="tr">
 <head>
 <meta charset="UTF-8">
-<title>Kalori Takip</title>
+<title>Kalori Takip Pro</title>
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <link rel="manifest" href="manifest.json">
+
+<style>
+body{
+  font-family: -apple-system;
+  background:#111;
+  color:#fff;
+  padding:20px;
+}
+.card{
+  background:#1c1c1e;
+  padding:15px;
+  border-radius:15px;
+  margin-bottom:15px;
+}
+input,button,select{
+  width:100%;
+  padding:10px;
+  margin-top:8px;
+  border-radius:10px;
+  border:none;
+}
+button{
+  background:#0a84ff;
+  color:white;
+}
+.small-btn{
+  width:auto;
+  padding:5px 10px;
+  margin-left:5px;
+}
+</style>
 </head>
+
 <body>
 
-<h2>Kalori Takip</h2>
+<h2>🔥 Kalori Takip Pro</h2>
 <h3 id="today"></h3>
 
-<input id="food" placeholder="Yemek adı"><br><br>
-<input id="cal" type="number" placeholder="Kalori"><br><br>
-<input id="protein" type="number" placeholder="Protein"><br><br>
-<input id="carb" type="number" placeholder="Karbonhidrat"><br><br>
-<input id="fat" type="number" placeholder="Yağ"><br><br>
-
+<div class="card">
+<h3>Yemek Ekle</h3>
+<input id="food" placeholder="Yemek adı">
+<input id="cal" type="number" placeholder="Kalori">
+<input id="protein" type="number" placeholder="Protein">
+<input id="carb" type="number" placeholder="Karbonhidrat">
+<input id="fat" type="number" placeholder="Yağ">
 <button onclick="addFood()">Ekle</button>
+</div>
 
+<div class="card">
+<h3>⚡ Hızlı Ekle</h3>
+<button onclick="quickAdd('Tavuk',200,40,0,5)">🍗 Tavuk</button>
+<button onclick="quickAdd('Pirinç',300,5,65,1)">🍚 Pirinç</button>
+<button onclick="quickAdd('Yumurta',150,12,1,10)">🥚 Yumurta</button>
+<button onclick="quickAdd('Ton Balığı',180,35,0,2)">🐟 Ton Balığı</button>
+</div>
+
+<div class="card">
 <h3>Toplam</h3>
 <p id="totals"></p>
-
-<h3>Hedef</h3>
-<input id="goalInput" type="number" placeholder="Kalori hedefi">
-<button onclick="setGoal()">Kaydet</button>
 <p id="goalStatus"></p>
+</div>
 
-<h3>Geçmiş Günler</h3>
+<div class="card">
+<h3>OMAD Modu</h3>
+<button onclick="toggleOMAD()">Aç / Kapat</button>
+<p id="omadStatus"></p>
+</div>
+
+<div class="card">
+<h3>Geçmiş</h3>
 <select id="historySelect" onchange="loadDay()"></select>
+</div>
 
+<div class="card">
 <ul id="list"></ul>
+</div>
 
-<canvas id="chart" width="300" height="300"></canvas>
+<canvas id="chart"></canvas>
 
 <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 
 <script>
 let todayDate = new Date().toISOString().split('T')[0];
-document.getElementById("today").innerText = "Bugün: " + todayDate;
+today.innerText = "Bugün: " + todayDate;
 
 let data = JSON.parse(localStorage.getItem("data")) || {};
-let goal = localStorage.getItem("goal") || 2000;
-let currentDay = todayDate;
+let goal = localStorage.getItem("goal") || 1800;
+let omad = JSON.parse(localStorage.getItem("omad")) || false;
 
-if(!data[currentDay]) data[currentDay] = [];
+let currentDay = todayDate;
+if(!data[currentDay]) data[currentDay]=[];
 
 function save(){
   localStorage.setItem("data", JSON.stringify(data));
+  localStorage.setItem("omad", JSON.stringify(omad));
 }
 
 function addFood(){
-  let item = {
-    name: food.value,
-    cal: +cal.value,
-    protein: +protein.value,
-    carb: +carb.value,
-    fat: +fat.value
+  let item={
+    name:food.value,
+    cal:+cal.value,
+    protein:+protein.value,
+    carb:+carb.value,
+    fat:+fat.value
   };
-
   data[currentDay].push(item);
   save();
   render();
 }
 
-function deleteFood(index){
-  data[currentDay].splice(index,1);
+function quickAdd(n,c,p,car,f){
+  data[currentDay].push({name:n,cal:c,protein:p,carb:car,fat:f});
   save();
   render();
 }
 
-function editFood(index){
-  let f = data[currentDay][index];
+function deleteFood(i){
+  data[currentDay].splice(i,1);
+  save();
+  render();
+}
 
-  let newName = prompt("Yemek adı:", f.name);
-  let newCal = prompt("Kalori:", f.cal);
-  let newP = prompt("Protein:", f.protein);
-  let newC = prompt("Karbonhidrat:", f.carb);
-  let newF = prompt("Yağ:", f.fat);
-
-  if(newName !== null){
-    data[currentDay][index] = {
-      name: newName,
-      cal: +newCal,
-      protein: +newP,
-      carb: +newC,
-      fat: +newF
-    };
-    save();
-    render();
+function editFood(i){
+  let f=data[currentDay][i];
+  let n=prompt("Ad:",f.name);
+  let c=prompt("Kalori:",f.cal);
+  if(n!==null){
+    data[currentDay][i]={name:n,cal:+c,protein:f.protein,carb:f.carb,fat:f.fat};
+    save();render();
   }
 }
 
-function setGoal(){
-  goal = goalInput.value;
-  localStorage.setItem("goal", goal);
+function toggleOMAD(){
+  omad=!omad;
+  save();
   render();
 }
 
 function loadDay(){
-  currentDay = historySelect.value;
+  currentDay=historySelect.value;
   render();
 }
 
 function render(){
-  list.innerHTML = "";
+  list.innerHTML="";
+  let foods=data[currentDay];
+  let cal=0,p=0,c=0,f=0;
 
-  let foods = data[currentDay] || [];
-  let totalCal=0, totalP=0, totalC=0, totalF=0;
-
-  foods.forEach((f,i)=>{
-    list.innerHTML += `
+  foods.forEach((x,i)=>{
+    list.innerHTML+=`
     <li>
-      ${f.name} - ${f.cal} kcal 
-      <button onclick="editFood(${i})">✏️</button>
-      <button onclick="deleteFood(${i})">❌</button>
+      ${x.name} (${x.cal} kcal)
+      <button class="small-btn" onclick="editFood(${i})">✏️</button>
+      <button class="small-btn" onclick="deleteFood(${i})">❌</button>
     </li>`;
-    
-    totalCal += f.cal;
-    totalP += f.protein;
-    totalC += f.carb;
-    totalF += f.fat;
+    cal+=x.cal;p+=x.protein;c+=x.carb;f+=x.fat;
   });
 
-  totals.innerHTML = `
-  Kalori: ${totalCal}<br>
-  Protein: ${totalP}g<br>
-  Karbonhidrat: ${totalC}g<br>
-  Yağ: ${totalF}g`;
+  totals.innerHTML=`
+  🔥 ${cal} kcal<br>
+  🥩 ${p}g | 🍞 ${c}g | 🧈 ${f}g`;
 
-  goalStatus.innerText = `Hedef: ${goal} | Kalan: ${goal-totalCal}`;
+  goalStatus.innerText=`Hedef: ${goal} | Kalan: ${goal-cal}`;
+
+  omadStatus.innerText= omad ? "OMAD aktif (tek öğün)" : "Normal mod";
 
   updateHistory();
-  drawChart(totalP,totalC,totalF);
+  drawChart(p,c,f);
 }
 
 function updateHistory(){
-  historySelect.innerHTML = "";
-  Object.keys(data).forEach(date=>{
-    historySelect.innerHTML += `<option value="${date}">${date}</option>`;
+  historySelect.innerHTML="";
+  Object.keys(data).forEach(d=>{
+    historySelect.innerHTML+=`<option>${d}</option>`;
   });
-  historySelect.value = currentDay;
+  historySelect.value=currentDay;
 }
 
 function drawChart(p,c,f){
-  new Chart(document.getElementById("chart"), {
-    type:'pie',
+  new Chart(chart,{
+    type:'doughnut',
     data:{
       labels:['Protein','Karbonhidrat','Yağ'],
       datasets:[{data:[p,c,f]}]
