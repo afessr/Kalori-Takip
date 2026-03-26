@@ -2,7 +2,7 @@
 <html lang="tr">
 <head>
 <meta charset="UTF-8">
-<title>Kalori Takip Pro | Mobil Demo</title>
+<title>Kalori Takip Pro | Gram Hesaplamalı Mobil Demo</title>
 <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <style>
@@ -18,13 +18,13 @@ label{font-size:12px;display:block;margin-top:4px;font-weight:600;}
 canvas{max-width:100%;height:250px !important;}
 .total{font-weight:bold;padding:6px;border-radius:6px;color:#fff;text-align:center;}
 .green{background:#34c759;}
-.yellow{background:#ffcc00;color:#000;}
+yellow{background:#ffcc00;color:#000;}
 .red{background:#ff3b30;}
 </style>
 </head>
 <body>
 
-<h2>🔥 Kalori Takip Pro | Mobil Demo</h2>
+<h2>🔥 Kalori Takip Pro | Gram Hesaplamalı</h2>
 <h3 id="today"></h3>
 
 <div class="card">
@@ -66,12 +66,13 @@ if(!data[currentDay]) data[currentDay]=[];
 
 let goal = 1800; // kalori hedefi
 
+// quickMeals artık 100g bazlı değerlerle
 let quickMeals=[
-  {name:"Tavuk + Pirinç",cal:500,protein:40,carb:50,fat:10, favorite:false, category:"Öğle", note:"", portion:1},
-  {name:"Ton Balığı Salata",cal:350,protein:35,carb:10,fat:15, favorite:true, category:"Öğle", note:"", portion:1},
-  {name:"Yumurta + Lor",cal:300,protein:25,carb:5,fat:15, favorite:false, category:"Kahvaltı", note:"", portion:1},
-  {name:"Lor Peynirli Sandviç",cal:400,protein:30,carb:35,fat:12, favorite:false, category:"Kahvaltı", note:"", portion:1},
-  {name:"Badem + Yoğurt",cal:250,protein:15,carb:10,fat:18, favorite:false, category:"Ara Öğün", note:"", portion:1},
+  {name:"Tavuk + Pirinç",cal:200,protein:16,carb:20,fat:4, favorite:false, category:"Öğle", note:"", portion:1, gram:100},
+  {name:"Ton Balığı Salata",cal:175,protein:17.5,carb:5,fat:7.5, favorite:true, category:"Öğle", note:"", portion:1, gram:100},
+  {name:"Yumurta + Lor",cal:150,protein:12.5,carb:2.5,fat:7.5, favorite:false, category:"Kahvaltı", note:"", portion:1, gram:100},
+  {name:"Lor Peynirli Sandviç",cal:200,protein:15,carb:17.5,fat:6, favorite:false, category:"Kahvaltı", note:"", portion:1, gram:100},
+  {name:"Badem + Yoğurt",cal:125,protein:7.5,carb:5,fat:9, favorite:false, category:"Ara Öğün", note:"", portion:1, gram:100},
 ];
 
 function save(){ localStorage.setItem("data",JSON.stringify(data)); }
@@ -86,7 +87,7 @@ function updateTotals(){
     totalFat+=item.fat;
   });
   let totalElem = document.getElementById("totals");
-  totalElem.innerText = `Kalori: ${totalCal} kcal | Protein: ${totalProt} g | Karbonhidrat: ${totalCarb} g | Yağ: ${totalFat} g`;
+  totalElem.innerText = `Kalori: ${totalCal.toFixed(1)} kcal | Protein: ${totalProt.toFixed(1)} g | Karbonhidrat: ${totalCarb.toFixed(1)} g | Yağ: ${totalFat.toFixed(1)} g`;
 
   if(totalCal<goal) totalElem.className="total green";
   else if(totalCal>goal) totalElem.className="total red";
@@ -128,10 +129,11 @@ function renderQuickMeals(){
     div.innerHTML=`
       <span class="favorite ${m.favorite?'favorite':''}" onclick="quickMeals[${i}].favorite=!quickMeals[${i}].favorite; renderQuickMeals()">★</span>
       <div><b>Ad:</b> <input value="${m.name}" onchange="quickMeals[${i}].name=this.value"></div>
-      <div><b>Kalori:</b> <input type="number" value="${m.cal}" onchange="quickMeals[${i}].cal=+this.value; updateTotals()"></div>
-      <div><b>Protein:</b> <input type="number" value="${m.protein}" onchange="quickMeals[${i}].protein=+this.value; updateTotals()"></div>
-      <div><b>Karbonhidrat:</b> <input type="number" value="${m.carb}" onchange="quickMeals[${i}].carb=+this.value; updateTotals()"></div>
-      <div><b>Yağ:</b> <input type="number" value="${m.fat}" onchange="quickMeals[${i}].fat=+this.value; updateTotals()"></div>
+      <div><b>Gram (100g baz):</b> <input type="number" value="${m.gram}" onchange="quickMeals[${i}].gram=+this.value; updateTotals()"></div>
+      <div><b>Kalori:</b> ${ (m.cal*m.gram/100).toFixed(1) } kcal</div>
+      <div><b>Protein:</b> ${ (m.protein*m.gram/100).toFixed(1) } g</div>
+      <div><b>Karbonhidrat:</b> ${ (m.carb*m.gram/100).toFixed(1) } g</div>
+      <div><b>Yağ:</b> ${ (m.fat*m.gram/100).toFixed(1) } g</div>
       <div><b>Porsiyon:</b>
         <select onchange="quickMeals[${i}].portion=+this.value">
           <option value="0.25">0.25x</option>
@@ -158,17 +160,18 @@ function renderQuickMeals(){
 
 function quickAdd(i){
   let m=quickMeals[i];
+  let gramFactor = m.gram/100;
   let p=m.portion||1;
   data[currentDay].push({
     name:m.name,
-    cal:m.cal*p,
-    protein:m.protein*p,
-    carb:m.carb*p,
-    fat:m.fat*p,
+    cal:m.cal*gramFactor*p,
+    protein:m.protein*gramFactor*p,
+    carb:m.carb*gramFactor*p,
+    fat:m.fat*gramFactor*p,
     category:m.category,
     note:m.note
   });
-  save(); updateTotals();
+  save(); updateTotals(); renderQuickMeals();
 }
 
 renderQuickMeals();
