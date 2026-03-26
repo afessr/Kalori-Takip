@@ -1,26 +1,35 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+<meta charset="UTF-8">
+<title>Kalori Takip Pro</title>
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<style>
+body{font-family:sans-serif;margin:0;padding:0;background:#f4f4f4;}
+h2,h3{margin:5px 10px;}
+.card{margin:10px;padding:10px;background:#fff;border-radius:8px;box-shadow:0 2px 5px rgba(0,0,0,0.2);}
+input, select, textarea{margin:3px 2px;padding:5px;}
+button{margin:3px 2px;padding:6px 8px;border:none;border-radius:4px;background:#0a84ff;color:#fff;cursor:pointer;}
+button:hover{opacity:0.9;}
+.small-btn{padding:1px 4px;margin-left:5px;}
+.highlight-high{background:#ffcccc;}
+.highlight-carb{background:#ccffcc;}
+.highlight-fat{background:#ccccff;}
+.draggable{cursor:grab;padding:5px;border:1px solid #ddd;margin:3px;border-radius:4px;background:#fafafa;display:flex;flex-wrap:wrap;align-items:center;gap:4px;}
+.favorite{color:gold;cursor:pointer;}
+canvas{max-width:100%;height:300px !important;}
+#splash{position:fixed;top:0;left:0;width:100%;height:100%;background:#111;display:flex;justify-content:center;align-items:center;flex-direction:column;z-index:9999;}
+#splash p{color:#fff;margin-top:15px;font-size:20px;opacity:0.8;}
+.spinner{border:6px solid #1c1c1e;border-top:6px solid #0a84ff;border-radius:50%;width:50px;height:50px;animation:spin 1s linear infinite;}
+@keyframes spin{0%{transform:rotate(0deg);}100%{transform:rotate(360deg);}}
+</style>
+</head>
 <body>
 
 <div id="splash">
   <div class="spinner"></div>
   <p>Kalori Takip Pro</p>
 </div>
-
-<style>
-body{font-family:sans-serif;}
-#splash{position:fixed;top:0;left:0;width:100%;height:100%;background:#111;
-display:flex;justify-content:center;align-items:center;flex-direction:column;z-index:9999;}
-#splash p{color:#fff;margin-top:15px;font-size:20px;opacity:0.8;}
-.spinner{border:6px solid #1c1c1e;border-top:6px solid #0a84ff;border-radius:50%;
-width:50px;height:50px;animation:spin 1s linear infinite;}
-@keyframes spin{0%{transform:rotate(0deg);}100%{transform:rotate(360deg);}}
-.card{margin:10px;padding:10px;border:1px solid #ccc;border-radius:5px;}
-input, select, textarea{margin:3px 2px;padding:3px;}
-button{margin:3px 2px;padding:4px;}
-.small-btn{padding:1px 4px;margin-left:5px;}
-.highlight-high{background:#ffcccc;}
-.draggable{cursor:grab;padding:5px;border:1px solid #ddd;margin:3px;border-radius:4px;background:#fafafa;}
-.favorite{color:gold;cursor:pointer;}
-</style>
 
 <h2>🔥 Kalori Takip Pro</h2>
 <h3 id="today"></h3>
@@ -32,12 +41,25 @@ button{margin:3px 2px;padding:4px;}
 <input id="protein" type="number" placeholder="Protein">
 <input id="carb" type="number" placeholder="Karbonhidrat">
 <input id="fat" type="number" placeholder="Yağ">
+<select id="category">
+  <option value="Kahvaltı">Kahvaltı</option>
+  <option value="Öğle">Öğle</option>
+  <option value="Akşam">Akşam</option>
+  <option value="Ara Öğün">Ara Öğün</option>
+</select>
 <button onclick="addFood()">Ekle</button>
 </div>
 
 <div class="card">
-<h3>⚡ Hazır Yemekler Paneli</h3>
+<h3>⚡ Hazır Yemekler</h3>
 <input id="searchQuick" placeholder="Ara..." oninput="renderQuickMeals()">
+<select id="filterCategory" onchange="renderQuickMeals()">
+  <option value="">Tümü</option>
+  <option value="Kahvaltı">Kahvaltı</option>
+  <option value="Öğle">Öğle</option>
+  <option value="Akşam">Akşam</option>
+  <option value="Ara Öğün">Ara Öğün</option>
+</select>
 <label><input type="checkbox" id="showFav" onchange="renderQuickMeals()"> Sadece Favori</label>
 <div id="quickContainer"></div>
 <button onclick="addAllQuick()">Tümünü Tek Tıkla Ekle</button>
@@ -63,17 +85,29 @@ button{margin:3px 2px;padding:4px;}
 </div>
 
 <div class="card">
-<ul id="list"></ul>
+<h3>Günlük Grafik</h3>
+<canvas id="chart"></canvas>
 </div>
 
-<canvas id="chart"></canvas>
+<div class="card">
+<h3>Aylık Toplam</h3>
+<select id="monthSelect" onchange="renderMonthly()"></select>
+<p id="monthlyTotals"></p>
+<canvas id="monthlyChart"></canvas>
+</div>
 
-<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<div class="card">
+<h3>Haftalık Rapor</h3>
+<select id="weekSelect" onchange="renderWeekly()"></select>
+<p id="weeklyTotals"></p>
+<canvas id="weeklyChart"></canvas>
+<canvas id="weeklyTrend"></canvas>
+</div>
 
 <script>
+// --- Genel Tanımlar ---
 let todayDate = new Date().toISOString().split('T')[0];
-today.innerText = "Bugün: " + todayDate;
-
+document.getElementById("today").innerText = "Bugün: " + todayDate;
 let data = JSON.parse(localStorage.getItem("data")) || {};
 let goal = localStorage.getItem("goal") || 1800;
 let omad = JSON.parse(localStorage.getItem("omad")) || false;
@@ -81,31 +115,29 @@ let currentDay = todayDate;
 if(!data[currentDay]) data[currentDay]=[];
 
 let quickMeals = JSON.parse(localStorage.getItem("quickMeals")) || [
-  {name:"Tavuk + Pirinç",cal:500,protein:40,carb:50,fat:10, note:"Izgara", favorite:false},
-  {name:"Ton Balığı Salata",cal:350,protein:35,carb:10,fat:15, note:"Az tuzlu", favorite:true},
-  {name:"Yumurta + Lor",cal:300,protein:25,carb:5,fat:15, note:"", favorite:false},
-  {name:"Lor Peynirli Sandviç",cal:400,protein:30,carb:35,fat:12, note:"Tam buğday ekmek", favorite:false},
-  {name:"Badem + Yoğurt",cal:250,protein:15,carb:10,fat:18, note:"", favorite:false},
+  {name:"Tavuk + Pirinç",cal:500,protein:40,carb:50,fat:10, note:"Izgara", favorite:false, category:"Öğle"},
+  {name:"Ton Balığı Salata",cal:350,protein:35,carb:10,fat:15, note:"Az tuzlu", favorite:true, category:"Öğle"},
+  {name:"Yumurta + Lor",cal:300,protein:25,carb:5,fat:15, note:"", favorite:false, category:"Kahvaltı"},
+  {name:"Lor Peynirli Sandviç",cal:400,protein:30,carb:35,fat:12, note:"Tam buğday ekmek", favorite:false, category:"Kahvaltı"},
+  {name:"Badem + Yoğurt",cal:250,protein:15,carb:10,fat:18, note:"", favorite:false, category:"Ara Öğün"},
 ];
 
 function saveQuickMeals(){ localStorage.setItem("quickMeals", JSON.stringify(quickMeals)); }
 function save(){ localStorage.setItem("data", JSON.stringify(data)); localStorage.setItem("omad", JSON.stringify(omad)); }
 
-let dragSrcIndex = null;
-
+// --- Quick Meals ---
 function renderQuickMeals(){
   let container=document.getElementById("quickContainer");
   container.innerHTML="";
   let filter=document.getElementById("searchQuick").value.toLowerCase();
   let showFav=document.getElementById("showFav").checked;
+  let categoryFilter=document.getElementById("filterCategory").value;
   quickMeals.forEach((m,i)=>{
     if(filter && !m.name.toLowerCase().includes(filter)) return;
     if(showFav && !m.favorite) return;
-    let highProtein=m.protein>50?"highlight-high":"";
+    if(categoryFilter && m.category!==categoryFilter) return;
     let div=document.createElement("div");
-    div.className="draggable "+highProtein;
-    div.draggable=true;
-    div.dataset.index=i;
+    div.className="draggable";
     div.innerHTML=`
       <span class="favorite ${m.favorite?'favorite':''}" onclick="toggleFavorite(${i})">★</span>
       <input id="qName${i}" value="${m.name}" placeholder="Ad">
@@ -121,120 +153,27 @@ function renderQuickMeals(){
         <option value="2">2x</option>
       </select>
       <input id="qNote${i}" placeholder="Not" value="${m.note}">
+      <select id="qCategory${i}">
+        <option value="Kahvaltı" ${m.category==="Kahvaltı"?"selected":""}>Kahvaltı</option>
+        <option value="Öğle" ${m.category==="Öğle"?"selected":""}>Öğle</option>
+        <option value="Akşam" ${m.category==="Akşam"?"selected":""}>Akşam</option>
+        <option value="Ara Öğün" ${m.category==="Ara Öğün"?"selected":""}>Ara Öğün</option>
+      </select>
       <button onclick="saveQuick(${i})">💾</button>
       <button onclick="quickAdd(${i})">➕</button>
+      <button onclick="duplicateQuick(${i})">⎘</button>
       <button onclick="deleteQuick(${i})">❌</button>
     `;
-    div.addEventListener("dragstart", e=>{dragSrcIndex=i;});
-    div.addEventListener("dragover", e=>{ e.preventDefault(); });
-    div.addEventListener("drop", e=>{
-      if(dragSrcIndex===null) return;
-      let targetIndex=i;
-      let temp=quickMeals[dragSrcIndex];
-      quickMeals.splice(dragSrcIndex,1);
-      quickMeals.splice(targetIndex,0,temp);
-      dragSrcIndex=null;
-      saveQuickMeals();
-      renderQuickMeals();
-    });
     container.appendChild(div);
   });
 }
 
-function toggleFavorite(i){
-  quickMeals[i].favorite=!quickMeals[i].favorite;
-  saveQuickMeals();
-  renderQuickMeals();
-}
+// --- Splash ---
+setTimeout(()=>{ let s=document.getElementById("splash"); s.style.opacity="0"; s.style.transition="0.5s"; setTimeout(()=>s.style.display="none",500); },1500);
 
-function saveQuick(i){
-  let name=document.getElementById("qName"+i).value;
-  let cal=+document.getElementById("qCal"+i).value;
-  let p=+document.getElementById("qP"+i).value;
-  let c=+document.getElementById("qC"+i).value;
-  let f=+document.getElementById("qF"+i).value;
-  let note=document.getElementById("qNote"+i).value;
-  quickMeals[i]={name:name,cal:cal,protein:p,carb:c,fat:f,note:note,favorite:quickMeals[i].favorite};
-  saveQuickMeals();
-  renderQuickMeals();
-}
-
-function quickAdd(i){
-  let m=quickMeals[i];
-  let portion=+document.getElementById("qPortion"+i).value;
-  data[currentDay].push({name:m.name,cal:m.cal*portion,protein:m.protein*portion,carb:m.carb*portion,fat:m.fat*portion});
-  save(); render();
-}
-
-function deleteQuick(i){ quickMeals.splice(i,1); saveQuickMeals(); renderQuickMeals(); }
-function addAllQuick(){ quickMeals.forEach((m,i)=>quickAdd(i)); }
-
-function exportQuick(){
-  let dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(quickMeals));
-  let dlAnchorElem = document.createElement('a');
-  dlAnchorElem.setAttribute("href", dataStr);
-  dlAnchorElem.setAttribute("download","quickMeals.json");
-  dlAnchorElem.click();
-}
-
-function importQuick(e){
-  let file=e.target.files[0];
-  let reader=new FileReader();
-  reader.onload=function(evt){
-    quickMeals=JSON.parse(evt.target.result);
-    saveQuickMeals(); renderQuickMeals();
-  };
-  reader.readAsText(file);
-}
-
-// Yemek ekleme ve günlük liste
-function addFood(){
-  let item={name:food.value,cal:+cal.value,protein:+protein.value,carb:+carb.value,fat:+fat.value};
-  data[currentDay].push(item);
-  save(); render();
-}
-function deleteFood(i){ data[currentDay].splice(i,1); save(); render(); }
-function editFood(i){ let f=data[currentDay][i]; let n=prompt("Ad:",f.name); let c=prompt("Kalori:",f.cal); if(n!==null){ data[currentDay][i]={name:n,cal:+c,protein:f.protein,carb:f.carb,fat:f.fat}; save(); render(); } }
-function toggleOMAD(){ omad=!omad; save(); render(); }
-function loadDay(){ currentDay=historySelect.value; render(); }
-
-function render(){
-  list.innerHTML="";
-  let foods=data[currentDay];
-  let cal=0,p=0,c=0,f=0;
-  foods.forEach((x,i)=>{
-    list.innerHTML+=`<li>${x.name} (${x.cal} kcal)
-      <button class="small-btn" onclick="editFood(${i})">✏️</button>
-      <button class="small-btn" onclick="deleteFood(${i})">❌</button>
-    </li>`;
-    cal+=x.cal;p+=x.protein;c+=x.carb;f+=x.fat;
-  });
-  totals.innerHTML=`🔥 ${cal} kcal<br>🥩 ${p}g | 🍞 ${c}g | 🧈 ${f}g`;
-  omadStatus.innerText= omad ? "OMAD aktif (tek öğün)" : "Normal mod";
-  goalStatus.innerText=`Hedef: ${goal} | Kalan: ${goal-cal}`;
-  updateHistory();
-  drawChart(p,c,f);
-}
-
-function updateHistory(){
-  historySelect.innerHTML="";
-  Object.keys(data).forEach(d=>{ historySelect.innerHTML+=`<option>${d}</option>` });
-  historySelect.value=currentDay;
-}
-
-function drawChart(p,c,f){
-  new Chart(chart,{ type:'doughnut', data:{ labels:['Protein','Karbonhidrat','Yağ'], datasets:[{data:[p,c,f]}] } });
-}
-
-// Splash spinner
-setTimeout(()=>{
-  let s=document.getElementById("splash");
-  s.style.opacity="0";
-  s.style.transition="0.5s";
-  setTimeout(()=>s.style.display="none",500);
-},1500);
-
+// --- Buraya diğer tüm fonksiyonlar ve grafikler entegre edilecek ---
 renderQuickMeals();
-render();
 </script>
+
 </body>
+</html>
