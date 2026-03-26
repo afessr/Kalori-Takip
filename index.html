@@ -222,7 +222,12 @@ function drawChart(p,c,f){
     }
   });
 }
-
+setTimeout(()=>{
+  let s = document.getElementById("splash");
+  s.style.opacity = "0";
+  s.style.transition = "0.5s";
+  setTimeout(()=> s.style.display="none",500);
+},1200);
 render();
 </script>
 
