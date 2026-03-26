@@ -19,6 +19,7 @@
       --protein: #4dabf7;
       --carb: #ffd43b;
       --fat: #ff8c00;
+      --water: #38bdf8;
     }
     * { box-sizing: border-box; margin: 0; padding: 0; }
     body {
@@ -26,9 +27,9 @@
       color: var(--text);
       font-family: 'DM Sans', sans-serif;
       min-height: 100vh;
-      padding: 24px 16px 48px;
+      padding: 24px 16px 80px;
     }
-    header { text-align: center; margin-bottom: 28px; }
+    header { text-align: center; margin-bottom: 24px; }
     header h1 {
       font-family: 'Bebas Neue', sans-serif;
       font-size: 3rem;
@@ -40,6 +41,13 @@
     }
     header p { color: var(--muted); font-size: 0.8rem; margin-top: 4px; letter-spacing: 1px; text-transform: uppercase; }
     .container { max-width: 480px; margin: 0 auto; }
+
+    /* Tab Nav */
+    .tab-nav { display: flex; gap: 6px; margin-bottom: 18px; background: var(--card); border: 1px solid var(--border); border-radius: 14px; padding: 6px; }
+    .tab-btn { flex: 1; background: none; border: none; border-radius: 10px; color: var(--muted); cursor: pointer; font-family: 'DM Sans', sans-serif; font-size: 0.8rem; font-weight: 600; padding: 9px 6px; text-transform: uppercase; letter-spacing: 0.5px; transition: all 0.2s; }
+    .tab-btn.active { background: linear-gradient(135deg, var(--accent), var(--accent2)); color: #fff; }
+    .tab-panel { display: none; }
+    .tab-panel.active { display: block; }
 
     /* Goal Bar */
     .goal-bar { background: var(--card); border: 1px solid var(--border); border-radius: 16px; padding: 20px; margin-bottom: 16px; }
@@ -57,6 +65,20 @@
     .goal-input-row button { background: var(--border); border: none; border-radius: 10px; color: var(--text); cursor: pointer; font-family: 'DM Sans', sans-serif; font-size: 0.85rem; font-weight: 600; padding: 10px 16px; transition: background 0.2s; }
     .goal-input-row button:hover { background: #333; }
 
+    /* Water */
+    .water-card { background: var(--card); border: 1px solid var(--border); border-radius: 16px; padding: 18px 20px; margin-bottom: 16px; }
+    .water-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px; }
+    .water-header span { font-size: 0.75rem; color: var(--muted); text-transform: uppercase; letter-spacing: 1px; }
+    .water-display { font-family: 'Bebas Neue', sans-serif; font-size: 1.8rem; color: var(--water); letter-spacing: 2px; }
+    .water-display small { font-size: 1rem; color: var(--muted); }
+    .water-track { background: var(--border); border-radius: 999px; height: 8px; overflow: hidden; margin-bottom: 12px; }
+    .water-fill { height: 100%; border-radius: 999px; background: linear-gradient(90deg, #0ea5e9, #38bdf8); transition: width 0.4s ease; width: 0%; }
+    .water-btns { display: flex; gap: 8px; flex-wrap: wrap; }
+    .water-btn { flex: 1; min-width: 60px; background: rgba(56,189,248,0.1); border: 1px solid rgba(56,189,248,0.25); border-radius: 10px; color: var(--water); cursor: pointer; font-family: 'DM Sans', sans-serif; font-size: 0.82rem; font-weight: 600; padding: 8px 6px; transition: all 0.2s; }
+    .water-btn:hover { background: rgba(56,189,248,0.2); }
+    .water-btn.reset { background: none; border-color: var(--border); color: var(--muted); }
+    .water-btn.reset:hover { color: var(--danger); border-color: var(--danger); background: rgba(255,59,48,0.08); }
+
     /* Macro Summary */
     .macro-summary { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; margin-bottom: 16px; }
     .macro-box { background: var(--card); border: 1px solid var(--border); border-radius: 12px; padding: 12px; text-align: center; }
@@ -66,22 +88,37 @@
     .macro-box.carb .macro-val { color: var(--carb); }
     .macro-box.fat .macro-val { color: var(--fat); }
 
+    /* Mode Toggle */
+    .mode-toggle { display: flex; gap: 6px; margin-bottom: 14px; }
+    .mode-btn { flex: 1; background: var(--bg); border: 1px solid var(--border); border-radius: 10px; color: var(--muted); cursor: pointer; font-family: 'DM Sans', sans-serif; font-size: 0.78rem; font-weight: 600; padding: 8px; text-transform: uppercase; letter-spacing: 0.5px; transition: all 0.2s; }
+    .mode-btn.active { border-color: var(--accent); color: var(--accent); background: rgba(255,77,0,0.08); }
+
     /* Form */
-    .form-card { background: var(--card); border: 1px solid var(--border); border-radius: 16px; padding: 20px; margin-bottom: 16px; position: relative; }
+    .form-card { background: var(--card); border: 1px solid var(--border); border-radius: 16px; padding: 20px; margin-bottom: 16px; }
     .form-card label { display: block; font-size: 0.75rem; color: var(--muted); text-transform: uppercase; letter-spacing: 1px; margin-bottom: 6px; }
     .form-card input[type="text"],
     .form-card input[type="number"] { width: 100%; background: var(--bg); border: 1px solid var(--border); border-radius: 10px; color: var(--text); font-family: 'DM Sans', sans-serif; font-size: 1rem; padding: 12px 14px; outline: none; transition: border-color 0.2s; margin-bottom: 14px; }
     .form-card input:focus { border-color: var(--accent); }
 
+    /* Manual macro grid */
+    .manual-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 14px; }
+    .manual-grid .field label { font-size: 0.7rem; color: var(--muted); text-transform: uppercase; letter-spacing: 1px; display: block; margin-bottom: 4px; }
+    .manual-grid .field input { margin-bottom: 0 !important; }
+    .manual-note { font-size: 0.75rem; color: var(--muted); margin-bottom: 14px; line-height: 1.5; }
+    .manual-note a { color: var(--accent2); text-decoration: none; }
+
+    /* Favorites quick pick */
+    .fav-quick { display: flex; flex-wrap: wrap; gap: 6px; margin-bottom: 14px; }
+    .fav-chip { background: rgba(255,77,0,0.1); border: 1px solid rgba(255,77,0,0.25); border-radius: 999px; color: var(--accent2); cursor: pointer; font-size: 0.75rem; font-weight: 600; padding: 5px 12px; transition: all 0.2s; white-space: nowrap; }
+    .fav-chip:hover { background: rgba(255,77,0,0.2); }
+
     /* AI Status */
-    .ai-status { font-size: 0.8rem; color: var(--muted); margin-bottom: 14px; display: none; align-items: center; gap: 8px; }
-    .ai-status.visible { display: flex; }
+    .ai-status { font-size: 0.8rem; color: var(--muted); margin-bottom: 14px; display: flex; align-items: center; gap: 8px; }
     .spinner { width: 14px; height: 14px; border: 2px solid var(--border); border-top-color: var(--accent); border-radius: 50%; animation: spin 0.7s linear infinite; }
     @keyframes spin { to { transform: rotate(360deg); } }
 
     /* Macro Preview */
-    .macro-preview { display: none; background: #111; border: 1px solid var(--border); border-radius: 12px; padding: 14px 16px; margin-bottom: 14px; flex-wrap: wrap; gap: 10px; align-items: center; }
-    .macro-preview.visible { display: flex; }
+    .macro-preview { background: #111; border: 1px solid var(--border); border-radius: 12px; padding: 14px 16px; margin-bottom: 14px; display: flex; flex-wrap: wrap; gap: 10px; align-items: center; }
     .mp-item { font-size: 0.82rem; }
     .mp-label { color: var(--muted); }
     .mp-val { font-weight: 600; margin-left: 4px; }
@@ -90,17 +127,19 @@
     .mp-c { color: var(--carb); }
     .mp-f { color: var(--fat); }
 
-    /* Suggestions */
-    #suggestions { position: absolute; left: 20px; right: 20px; background: #222; border: 1px solid var(--border); border-radius: 10px; z-index: 99; overflow: hidden; box-shadow: 0 8px 24px rgba(0,0,0,0.5); }
-    .suggestion-item { padding: 10px 14px; cursor: pointer; font-size: 0.9rem; transition: background 0.15s; border-bottom: 1px solid var(--border); }
-    .suggestion-item:last-child { border-bottom: none; }
-    .suggestion-item:hover { background: var(--border); }
-
-    /* Add Button */
-    .add-btn { width: 100%; background: linear-gradient(135deg, var(--accent), var(--accent2)); border: none; border-radius: 12px; color: #fff; cursor: pointer; font-family: 'Bebas Neue', sans-serif; font-size: 1.2rem; letter-spacing: 2px; padding: 14px; transition: opacity 0.2s, transform 0.1s; }
+    /* Add Button Row */
+    .add-row { display: flex; gap: 8px; }
+    .add-btn { flex: 1; background: linear-gradient(135deg, var(--accent), var(--accent2)); border: none; border-radius: 12px; color: #fff; cursor: pointer; font-family: 'Bebas Neue', sans-serif; font-size: 1.2rem; letter-spacing: 2px; padding: 14px; transition: opacity 0.2s, transform 0.1s; }
     .add-btn:hover { opacity: 0.9; }
     .add-btn:active { transform: scale(0.98); }
     .add-btn:disabled { opacity: 0.4; cursor: not-allowed; transform: none; }
+    .fav-save-btn { background: rgba(255,140,0,0.15); border: 1px solid rgba(255,140,0,0.3); border-radius: 12px; color: var(--accent2); cursor: pointer; font-size: 1.2rem; padding: 14px 16px; transition: all 0.2s; }
+    .fav-save-btn:hover { background: rgba(255,140,0,0.25); }
+    .fav-save-btn.saved { color: var(--success); border-color: var(--success); background: rgba(0,200,150,0.1); }
+
+    /* AI trigger btn */
+    .ai-trigger-btn { width: 100%; background: rgba(255,77,0,0.12); border: 1px solid rgba(255,77,0,0.3); border-radius: 12px; color: var(--accent); cursor: pointer; font-family: 'DM Sans', sans-serif; font-size: 0.9rem; font-weight: 600; padding: 12px; margin-bottom: 14px; transition: all 0.2s; }
+    .ai-trigger-btn:hover { background: rgba(255,77,0,0.2); }
 
     /* List */
     .list-card { background: var(--card); border: 1px solid var(--border); border-radius: 16px; overflow: hidden; }
@@ -126,8 +165,41 @@
     .delete-btn:hover { color: var(--danger); background: rgba(255,59,48,0.1); }
     .empty-msg { text-align: center; padding: 32px; color: var(--muted); font-size: 0.85rem; }
 
+    /* Favorites Tab */
+    .fav-list { list-style: none; }
+    .fav-list-item { padding: 14px 20px; border-bottom: 1px solid var(--border); display: flex; justify-content: space-between; align-items: center; }
+    .fav-list-item:last-child { border-bottom: none; }
+    .fav-info { flex: 1; }
+    .fav-name { font-size: 0.95rem; font-weight: 500; }
+    .fav-meta { font-size: 0.75rem; color: var(--muted); margin-top: 3px; }
+    .fav-actions { display: flex; gap: 8px; }
+    .fav-use-btn { background: rgba(255,77,0,0.1); border: 1px solid rgba(255,77,0,0.25); border-radius: 8px; color: var(--accent); cursor: pointer; font-size: 0.78rem; font-weight: 600; padding: 5px 10px; transition: all 0.2s; }
+    .fav-use-btn:hover { background: rgba(255,77,0,0.2); }
+    .fav-del-btn { background: none; border: none; color: var(--muted); cursor: pointer; font-size: 0.9rem; padding: 5px; border-radius: 6px; transition: color 0.2s; }
+    .fav-del-btn:hover { color: var(--danger); }
+
+    /* History */
+    .history-day { background: var(--card); border: 1px solid var(--border); border-radius: 14px; margin-bottom: 12px; overflow: hidden; }
+    .history-day-header { padding: 14px 18px; display: flex; justify-content: space-between; align-items: center; cursor: pointer; transition: background 0.2s; }
+    .history-day-header:hover { background: rgba(255,255,255,0.03); }
+    .history-date { font-weight: 600; font-size: 0.9rem; }
+    .history-kcal { font-family: 'Bebas Neue', sans-serif; font-size: 1.1rem; color: var(--accent); letter-spacing: 1px; }
+    .history-macros-row { font-size: 0.72rem; color: var(--muted); margin-top: 2px; }
+    .history-body { border-top: 1px solid var(--border); padding: 10px 18px; display: none; }
+    .history-body.open { display: block; }
+    .history-food-row { display: flex; justify-content: space-between; padding: 5px 0; border-bottom: 1px solid #222; font-size: 0.82rem; }
+    .history-food-row:last-child { border-bottom: none; }
+    .history-chevron { color: var(--muted); font-size: 0.8rem; transition: transform 0.2s; }
+    .history-chevron.open { transform: rotate(180deg); }
+    .history-water { font-size: 0.78rem; color: var(--water); margin-top: 8px; }
+    .no-history { text-align: center; padding: 40px 20px; color: var(--muted); font-size: 0.85rem; }
+
+    /* Date badge */
+    .date-badge { background: var(--border); border-radius: 8px; color: var(--muted); font-size: 0.72rem; padding: 4px 10px; text-align: center; margin-bottom: 14px; letter-spacing: 0.5px; }
+    .section-label { font-size: 0.7rem; color: var(--muted); text-transform: uppercase; letter-spacing: 1px; margin-bottom: 8px; }
+
     /* Toast */
-    .toast { position: fixed; bottom: 24px; left: 50%; transform: translateX(-50%) translateY(80px); background: var(--success); color: #000; font-weight: 600; font-size: 0.85rem; padding: 10px 20px; border-radius: 999px; transition: transform 0.3s ease; z-index: 999; }
+    .toast { position: fixed; bottom: 24px; left: 50%; transform: translateX(-50%) translateY(80px); background: var(--success); color: #000; font-weight: 600; font-size: 0.85rem; padding: 10px 20px; border-radius: 999px; transition: transform 0.3s ease; z-index: 999; white-space: nowrap; }
     .toast.show { transform: translateX(-50%) translateY(0); }
   </style>
 </head>
@@ -135,124 +207,220 @@
 <div class="container">
   <header>
     <h1>🔥 OMAD TRACKER</h1>
-    <p>AI destekli kalori & makro takibi</p>
+    <p>Kalori & Makro Takibi</p>
   </header>
 
-  <!-- Hedef -->
-  <div class="goal-bar">
-    <div class="goal-bar-top">
-      <span>Günlük Hedef</span>
-      <div class="goal-numbers">
-        <em id="totalDisplay">0</em>
-        <small id="goalDisplay"> / 2000 kcal</small>
+  <div class="tab-nav">
+    <button class="tab-btn active" onclick="switchTab('today')">Bugün</button>
+    <button class="tab-btn" onclick="switchTab('favorites')">⭐ Favoriler</button>
+    <button class="tab-btn" onclick="switchTab('history')">📅 Geçmiş</button>
+  </div>
+
+  <!-- TODAY TAB -->
+  <div class="tab-panel active" id="tab-today">
+    <div class="date-badge" id="todayBadge"></div>
+
+    <div class="goal-bar">
+      <div class="goal-bar-top">
+        <span>Günlük Hedef</span>
+        <div class="goal-numbers"><em id="totalDisplay">0</em><small id="goalDisplay"> / 2000 kcal</small></div>
+      </div>
+      <div class="progress-track"><div class="progress-fill" id="progressFill"></div></div>
+      <div class="goal-input-row">
+        <input type="number" id="goalInput" placeholder="Hedef kalori" min="1">
+        <button onclick="setGoal()">Kaydet</button>
       </div>
     </div>
-    <div class="progress-track"><div class="progress-fill" id="progressFill"></div></div>
-    <div class="goal-input-row">
-      <input type="number" id="goalInput" placeholder="Hedef kalori (örn. 2000)" min="1">
-      <button onclick="setGoal()">Kaydet</button>
+
+    <div class="water-card">
+      <div class="water-header">
+        <span>💧 Su Takibi</span>
+        <div class="water-display"><em id="waterDisplay">0</em><small id="waterGoalDisplay"> / 2500 ml</small></div>
+      </div>
+      <div class="water-track"><div class="water-fill" id="waterFill"></div></div>
+      <div class="water-btns">
+        <button class="water-btn" onclick="addWater(150)">+150ml</button>
+        <button class="water-btn" onclick="addWater(200)">+200ml</button>
+        <button class="water-btn" onclick="addWater(300)">+300ml</button>
+        <button class="water-btn" onclick="addWater(500)">+500ml</button>
+        <button class="water-btn reset" onclick="resetWater()">Sıfırla</button>
+      </div>
+    </div>
+
+    <div class="macro-summary">
+      <div class="macro-box protein"><div class="macro-val" id="totalProtein">0g</div><div class="macro-lbl">Protein</div></div>
+      <div class="macro-box carb"><div class="macro-val" id="totalCarb">0g</div><div class="macro-lbl">Karbonhidrat</div></div>
+      <div class="macro-box fat"><div class="macro-val" id="totalFat">0g</div><div class="macro-lbl">Yağ</div></div>
+    </div>
+
+    <div class="form-card">
+      <div id="favQuickSection" style="display:none;">
+        <div class="section-label">Favorilerden Hızlı Ekle</div>
+        <div class="fav-quick" id="favQuick"></div>
+      </div>
+
+      <!-- Mod seçimi -->
+      <div class="mode-toggle">
+        <button class="mode-btn active" id="modeManualBtn" onclick="setMode('manual')">✏️ Manuel Giriş</button>
+        <button class="mode-btn" id="modeAiBtn" onclick="setMode('ai')">🤖 AI ile Hesapla</button>
+      </div>
+
+      <label>Yemek Adı</label>
+      <input type="text" id="food" placeholder="Örn: tavuk göğsü, pirinç..." autocomplete="off">
+
+      <label>Gram Miktarı</label>
+      <input type="number" id="grams" placeholder="Kaç gram?" min="1">
+
+      <!-- MANUEL BÖLÜM -->
+      <div id="manualSection">
+        <p class="manual-note">Besin değerlerini paketin arkasından veya <a href="https://www.kalorihesapla.net" target="_blank">kalorihesapla.net</a>'ten gir.</p>
+        <div class="manual-grid">
+          <div class="field">
+            <label>Kalori (kcal)</label>
+            <input type="number" id="manCal" placeholder="örn. 165" min="0">
+          </div>
+          <div class="field">
+            <label>Protein (g)</label>
+            <input type="number" id="manProt" placeholder="örn. 31" min="0">
+          </div>
+          <div class="field">
+            <label>Karbonhidrat (g)</label>
+            <input type="number" id="manCarb" placeholder="örn. 0" min="0">
+          </div>
+          <div class="field">
+            <label>Yağ (g)</label>
+            <input type="number" id="manFat" placeholder="örn. 3.6" min="0">
+          </div>
+        </div>
+      </div>
+
+      <!-- AI BÖLÜM -->
+      <div id="aiSection" style="display:none;">
+        <button class="ai-trigger-btn" id="aiTriggerBtn" onclick="triggerAI()">🤖 Besin Değerlerini Hesapla</button>
+        <div class="ai-status" id="aiStatus" style="display:none;">
+          <div class="spinner"></div>
+          <span>AI hesaplıyor...</span>
+        </div>
+        <div class="macro-preview" id="macroPreview" style="display:none;">
+          <div class="mp-item"><span class="mp-label">Kalori:</span><span class="mp-val mp-kcal" id="pvKcal">-</span></div>
+          <div class="mp-item"><span class="mp-label">Protein:</span><span class="mp-val mp-p" id="pvProt">-</span></div>
+          <div class="mp-item"><span class="mp-label">Karb:</span><span class="mp-val mp-c" id="pvCarb">-</span></div>
+          <div class="mp-item"><span class="mp-label">Yağ:</span><span class="mp-val mp-f" id="pvFat">-</span></div>
+        </div>
+      </div>
+
+      <div class="add-row">
+        <button class="add-btn" id="addBtn" onclick="addFood()">+ EKLE</button>
+        <button class="fav-save-btn" id="favSaveBtn" title="Favorilere ekle" onclick="saveToFavorites()">⭐</button>
+      </div>
+    </div>
+
+    <div class="list-card">
+      <div class="list-header">
+        <span>Eklenen Yemekler</span>
+        <button class="clear-btn" onclick="clearAll()">Tümünü Sil</button>
+      </div>
+      <ul id="list"></ul>
     </div>
   </div>
 
-  <!-- Makro Özet -->
-  <div class="macro-summary">
-    <div class="macro-box protein"><div class="macro-val" id="totalProtein">0g</div><div class="macro-lbl">Protein</div></div>
-    <div class="macro-box carb"><div class="macro-val" id="totalCarb">0g</div><div class="macro-lbl">Karbonhidrat</div></div>
-    <div class="macro-box fat"><div class="macro-val" id="totalFat">0g</div><div class="macro-lbl">Yağ</div></div>
+  <!-- FAVORITES TAB -->
+  <div class="tab-panel" id="tab-favorites">
+    <div class="list-card">
+      <div class="list-header">
+        <span>⭐ Favori Yemekler</span>
+        <span style="font-size:0.72rem;color:var(--muted);">100g için değerler</span>
+      </div>
+      <ul class="fav-list" id="favList"></ul>
+    </div>
   </div>
 
-  <!-- Form -->
-  <div class="form-card">
-    <label>Yemek Adı</label>
-    <input type="text" id="food" placeholder="Örn: tavuk göğsü, pirinç, yumurta..." autocomplete="off">
-    <div id="suggestions"></div>
-
-    <label>Gram Miktarı</label>
-    <input type="number" id="grams" placeholder="Kaç gram?" min="1">
-
-    <div class="ai-status" id="aiStatus">
-      <div class="spinner"></div>
-      <span>AI besin değerlerini hesaplıyor...</span>
-    </div>
-
-    <div class="macro-preview" id="macroPreview">
-      <div class="mp-item"><span class="mp-label">Kalori:</span><span class="mp-val mp-kcal" id="pvKcal">-</span></div>
-      <div class="mp-item"><span class="mp-label">Protein:</span><span class="mp-val mp-p" id="pvProt">-</span></div>
-      <div class="mp-item"><span class="mp-label">Karb:</span><span class="mp-val mp-c" id="pvCarb">-</span></div>
-      <div class="mp-item"><span class="mp-label">Yağ:</span><span class="mp-val mp-f" id="pvFat">-</span></div>
-    </div>
-
-    <button class="add-btn" id="addBtn" onclick="addFood()">+ EKLE</button>
-  </div>
-
-  <!-- Liste -->
-  <div class="list-card">
-    <div class="list-header">
-      <span>Eklenen Yemekler</span>
-      <button class="clear-btn" onclick="clearAll()">Tümünü Sil</button>
-    </div>
-    <ul id="list">
-      <li class="empty-msg">Henüz yemek eklenmedi 🍽️</li>
-    </ul>
+  <!-- HISTORY TAB -->
+  <div class="tab-panel" id="tab-history">
+    <div id="historyContainer"></div>
   </div>
 </div>
 
 <div class="toast" id="toast"></div>
 
 <script>
-  let foods = JSON.parse(localStorage.getItem("omad_foods") || "[]");
-  let goal = parseInt(localStorage.getItem("omad_goal") || "2000");
-  let currentMacros = null;
-  let aiDebounce = null;
+  // ---- State ----
+  function todayKey() { return new Date().toISOString().slice(0, 10); }
 
+  var foods = JSON.parse(localStorage.getItem("omad_foods_" + todayKey()) || "[]");
+  var goal = parseInt(localStorage.getItem("omad_goal") || "2000");
+  var waterGoal = 2500;
+  var waterMl = parseInt(localStorage.getItem("omad_water_" + todayKey()) || "0");
+  var favorites = JSON.parse(localStorage.getItem("omad_favorites") || "[]");
+  var currentMacros = null;
+  var currentMode = "manual";
+  var pendingFav = null;
+
+  // ---- Init ----
   document.getElementById("goalInput").value = goal;
+  document.getElementById("todayBadge").textContent = formatDateTR(todayKey());
   renderList();
   updateTotals();
+  updateWater();
+  renderFavQuick();
+  renderFavList();
 
-  // Enter desteği
-  document.getElementById("food").addEventListener("keydown", e => { if (e.key === "Enter") document.getElementById("grams").focus(); });
-  document.getElementById("grams").addEventListener("keydown", e => { if (e.key === "Enter") addFood(); });
+  // Enter keys
+  document.getElementById("food").addEventListener("keydown", function(e) { if (e.key === "Enter") document.getElementById("grams").focus(); });
+  document.getElementById("grams").addEventListener("keydown", function(e) { if (e.key === "Enter") { if (currentMode === "manual") document.getElementById("manCal").focus(); else triggerAI(); } });
 
-  // Yemek adı değişince
-  document.getElementById("food").addEventListener("input", function () {
-    currentMacros = null;
-    document.getElementById("macroPreview").classList.remove("visible");
-    clearTimeout(aiDebounce);
-    const val = this.value.trim();
-    if (val.length < 2) return;
-    aiDebounce = setTimeout(() => {
-      const grams = parseInt(document.getElementById("grams").value);
-      if (grams > 0) fetchMacros(val, grams);
-    }, 700);
+  // Clear pendingFav when food name changes manually
+  document.getElementById("food").addEventListener("input", function() { pendingFav = null; });
+
+  // Auto-fill macros from favorite when grams are typed
+  document.getElementById("grams").addEventListener("input", function() {
+    if (!pendingFav) return;
+    var grams = parseFloat(this.value);
+    if (!grams || grams <= 0) return;
+    var factor = grams / 100;
+    document.getElementById("manCal").value = Math.round(pendingFav.cal100 * factor);
+    document.getElementById("manProt").value = Math.round(pendingFav.protein100 * factor);
+    document.getElementById("manCarb").value = Math.round(pendingFav.carb100 * factor);
+    document.getElementById("manFat").value = Math.round(pendingFav.fat100 * factor);
   });
 
-  // Gram değişince
-  document.getElementById("grams").addEventListener("input", function () {
-    const grams = parseInt(this.value);
-    const food = document.getElementById("food").value.trim();
+  // ---- Mode ----
+  function setMode(mode) {
+    currentMode = mode;
     currentMacros = null;
-    document.getElementById("macroPreview").classList.remove("visible");
-    if (!food || food.length < 2 || !grams || grams <= 0) return;
-    clearTimeout(aiDebounce);
-    aiDebounce = setTimeout(() => fetchMacros(food, grams), 500);
-  });
-
-  // Öneri kapat
-  document.addEventListener("click", function (e) {
-    if (!e.target.closest("#suggestions") && e.target.id !== "food") {
-      document.getElementById("suggestions").innerHTML = "";
+    document.getElementById("modeManualBtn").classList.toggle("active", mode === "manual");
+    document.getElementById("modeAiBtn").classList.toggle("active", mode === "ai");
+    document.getElementById("manualSection").style.display = mode === "manual" ? "block" : "none";
+    document.getElementById("aiSection").style.display = mode === "ai" ? "block" : "none";
+    document.getElementById("macroPreview").style.display = "none";
+    document.getElementById("aiStatus").style.display = "none";
+    if (mode === "manual" && pendingFav) {
+      // re-trigger fill if grams already entered
+      var grams = parseFloat(document.getElementById("grams").value);
+      if (grams > 0) {
+        var factor = grams / 100;
+        document.getElementById("manCal").value = Math.round(pendingFav.cal100 * factor);
+        document.getElementById("manProt").value = Math.round(pendingFav.protein100 * factor);
+        document.getElementById("manCarb").value = Math.round(pendingFav.carb100 * factor);
+        document.getElementById("manFat").value = Math.round(pendingFav.fat100 * factor);
+      }
     }
-  });
-  document.getElementById("food").addEventListener("blur", function () {
-    setTimeout(() => { document.getElementById("suggestions").innerHTML = ""; }, 150);
-  });
+  }
 
-  async function fetchMacros(foodName, grams) {
-    document.getElementById("aiStatus").classList.add("visible");
+  // ---- AI ----
+  async function triggerAI() {
+    var foodName = document.getElementById("food").value.trim();
+    var grams = parseFloat(document.getElementById("grams").value);
+    if (!foodName) { showToast("❗ Yemek adını gir", "#ff4d00"); return; }
+    if (!grams || grams <= 0) { showToast("❗ Gram miktarını gir", "#ff4d00"); return; }
+
+    document.getElementById("aiStatus").style.display = "flex";
+    document.getElementById("macroPreview").style.display = "none";
     document.getElementById("addBtn").disabled = true;
+    document.getElementById("aiTriggerBtn").disabled = true;
 
     try {
-      const response = await fetch("https://api.anthropic.com/v1/messages", {
+      var response = await fetch("https://api.anthropic.com/v1/messages", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
@@ -260,15 +428,17 @@
           max_tokens: 200,
           messages: [{
             role: "user",
-            content: `Besin: "${foodName}", miktar: ${grams} gram. 100 gram için ortalama besin değerlerini kullanarak ${grams} gram için hesapla. Sadece JSON döndür, başka hiçbir şey yazma: {"kalori": sayı, "protein": sayı, "karbonhidrat": sayı, "yag": sayı} Tüm değerler tam sayı olsun.`
+            content: "Besin: \"" + foodName + "\", miktar: " + grams + " gram. 100 gram icin ortalama besin degerlerini kullanarak " + grams + " gram icin hesapla. Sadece JSON don dur: {\"kalori\": sayi, \"protein\": sayi, \"karbonhidrat\": sayi, \"yag\": sayi} Tum degerler tam sayi olsun."
           }]
         })
       });
 
-      const data = await response.json();
-      const text = data.content.map(i => i.text || "").join("").trim();
-      const clean = text.replace(/```json|```/g, "").trim();
-      const parsed = JSON.parse(clean);
+      if (!response.ok) throw new Error("HTTP " + response.status);
+
+      var data = await response.json();
+      var text = data.content.map(function(i) { return i.text || ""; }).join("").trim();
+      var clean = text.replace(/```json|```/g, "").trim();
+      var parsed = JSON.parse(clean);
 
       currentMacros = {
         cal: Math.round(parsed.kalori),
@@ -281,41 +451,68 @@
       document.getElementById("pvProt").textContent = currentMacros.protein + "g";
       document.getElementById("pvCarb").textContent = currentMacros.carb + "g";
       document.getElementById("pvFat").textContent = currentMacros.fat + "g";
-      document.getElementById("macroPreview").classList.add("visible");
+      document.getElementById("macroPreview").style.display = "flex";
+      showToast("✅ AI hesapladı!");
 
     } catch (err) {
-      showToast("⚠️ AI bağlanamadı", "#ff4d00");
+      showToast("⚠️ AI bağlanamadı — Manuel moda geçildi", "#ff8c00");
+      setMode("manual");
     }
 
-    document.getElementById("aiStatus").classList.remove("visible");
+    document.getElementById("aiStatus").style.display = "none";
     document.getElementById("addBtn").disabled = false;
+    document.getElementById("aiTriggerBtn").disabled = false;
   }
 
+  // ---- Get macros from current mode ----
+  function getMacros() {
+    if (currentMode === "ai") return currentMacros;
+    var cal = parseFloat(document.getElementById("manCal").value);
+    var prot = parseFloat(document.getElementById("manProt").value) || 0;
+    var carb = parseFloat(document.getElementById("manCarb").value) || 0;
+    var fat = parseFloat(document.getElementById("manFat").value) || 0;
+    if (!cal || cal <= 0) return null;
+    return { cal: Math.round(cal), protein: Math.round(prot), carb: Math.round(carb), fat: Math.round(fat) };
+  }
+
+  // ---- Food CRUD ----
   function addFood() {
-    const food = document.getElementById("food").value.trim();
-    const grams = parseInt(document.getElementById("grams").value);
+    var food = document.getElementById("food").value.trim();
+    var grams = parseFloat(document.getElementById("grams").value);
 
     if (!food) { showToast("❗ Yemek adı gir!", "#ff4d00"); return; }
     if (!grams || grams <= 0) { showToast("❗ Gram miktarı gir!", "#ff4d00"); return; }
-    if (!currentMacros) { showToast("⏳ Önce gram gir, AI hesaplasın", "#ff8c00"); return; }
 
-    const item = { id: Date.now(), name: food, grams, ...currentMacros };
+    var macros = getMacros();
+    if (!macros) {
+      if (currentMode === "manual") showToast("❗ En az kalori değerini gir!", "#ff4d00");
+      else showToast("⏳ Önce 'AI ile Hesapla' butonuna bas!", "#ff8c00");
+      return;
+    }
+
+    var item = { id: Date.now(), name: food, grams: grams, cal: macros.cal, protein: macros.protein, carb: macros.carb, fat: macros.fat };
     foods.push(item);
     saveData();
     renderList();
     updateTotals();
 
+    // Reset
     document.getElementById("food").value = "";
     document.getElementById("grams").value = "";
-    document.getElementById("macroPreview").classList.remove("visible");
-    document.getElementById("suggestions").innerHTML = "";
+    document.getElementById("manCal").value = "";
+    document.getElementById("manProt").value = "";
+    document.getElementById("manCarb").value = "";
+    document.getElementById("manFat").value = "";
+    document.getElementById("macroPreview").style.display = "none";
+    document.getElementById("favSaveBtn").classList.remove("saved");
     currentMacros = null;
+    pendingFav = null;
 
     showToast("✅ Eklendi!");
   }
 
   function deleteFood(id) {
-    foods = foods.filter(f => f.id !== id);
+    foods = foods.filter(function(f) { return f.id !== id; });
     saveData();
     renderList();
     updateTotals();
@@ -330,8 +527,170 @@
     updateTotals();
   }
 
+  // ---- Water ----
+  function addWater(ml) {
+    waterMl += ml;
+    localStorage.setItem("omad_water_" + todayKey(), waterMl);
+    updateWater();
+    showToast("💧 +" + ml + "ml eklendi");
+  }
+
+  function resetWater() {
+    if (!confirm("Su takibini sıfırla?")) return;
+    waterMl = 0;
+    localStorage.setItem("omad_water_" + todayKey(), 0);
+    updateWater();
+  }
+
+  function updateWater() {
+    document.getElementById("waterDisplay").textContent = waterMl;
+    document.getElementById("waterGoalDisplay").textContent = " / " + waterGoal + " ml";
+    document.getElementById("waterFill").style.width = Math.min((waterMl / waterGoal) * 100, 100) + "%";
+  }
+
+  // ---- Favorites ----
+  function saveToFavorites() {
+    var food = document.getElementById("food").value.trim();
+    var grams = parseFloat(document.getElementById("grams").value);
+    var macros = getMacros();
+
+    if (!food) { showToast("❗ Yemek adı gir", "#ff4d00"); return; }
+    if (!grams || grams <= 0) { showToast("❗ Gram miktarı gir", "#ff4d00"); return; }
+    if (!macros) { showToast("⏳ Besin değerlerini gir", "#ff8c00"); return; }
+
+    if (favorites.find(function(f) { return f.name.toLowerCase() === food.toLowerCase(); })) {
+      showToast("⭐ Zaten favorilerde!", "#ff8c00"); return;
+    }
+
+    var factor = 100 / grams;
+    favorites.push({
+      name: food,
+      cal100: Math.round(macros.cal * factor),
+      protein100: Math.round(macros.protein * factor),
+      carb100: Math.round(macros.carb * factor),
+      fat100: Math.round(macros.fat * factor)
+    });
+    localStorage.setItem("omad_favorites", JSON.stringify(favorites));
+    document.getElementById("favSaveBtn").classList.add("saved");
+    renderFavList();
+    renderFavQuick();
+    showToast("⭐ Favorilere eklendi!");
+  }
+
+  function deleteFavorite(name) {
+    favorites = favorites.filter(function(f) { return f.name !== name; });
+    localStorage.setItem("omad_favorites", JSON.stringify(favorites));
+    renderFavList();
+    renderFavQuick();
+    showToast("🗑️ Silindi", "#ff4d00");
+  }
+
+  function useFavorite(name) {
+    var fav = favorites.find(function(f) { return f.name === name; });
+    if (!fav) return;
+    switchTab("today");
+    setMode("manual");
+    document.getElementById("food").value = fav.name;
+    pendingFav = fav;
+    // Clear old manual values
+    document.getElementById("manCal").value = "";
+    document.getElementById("manProt").value = "";
+    document.getElementById("manCarb").value = "";
+    document.getElementById("manFat").value = "";
+    document.getElementById("grams").value = "";
+    document.getElementById("grams").focus();
+    showToast("✏️ Gram miktarını gir!");
+  }
+
+  function renderFavQuick() {
+    var sec = document.getElementById("favQuickSection");
+    var cont = document.getElementById("favQuick");
+    if (favorites.length === 0) { sec.style.display = "none"; return; }
+    sec.style.display = "block";
+    cont.innerHTML = "";
+    favorites.slice(0, 8).forEach(function(fav) {
+      var chip = document.createElement("button");
+      chip.className = "fav-chip";
+      chip.textContent = fav.name;
+      chip.onclick = function() { useFavorite(fav.name); };
+      cont.appendChild(chip);
+    });
+  }
+
+  function renderFavList() {
+    var ul = document.getElementById("favList");
+    ul.innerHTML = "";
+    if (favorites.length === 0) {
+      ul.innerHTML = "<li class='empty-msg'>Henüz favori eklenmedi.<br>Yemek eklerken ⭐ butonuna bas!</li>";
+      return;
+    }
+    favorites.forEach(function(fav) {
+      var li = document.createElement("li");
+      li.className = "fav-list-item";
+      li.innerHTML =
+        "<div class='fav-info'>" +
+          "<div class='fav-name'>" + fav.name + "</div>" +
+          "<div class='fav-meta'>100g → " + fav.cal100 + " kcal · P:" + fav.protein100 + "g · K:" + fav.carb100 + "g · Y:" + fav.fat100 + "g</div>" +
+        "</div>" +
+        "<div class='fav-actions'>" +
+          "<button class='fav-use-btn'>Kullan</button>" +
+          "<button class='fav-del-btn'>✕</button>" +
+        "</div>";
+      li.querySelector(".fav-use-btn").onclick = function() { useFavorite(fav.name); };
+      li.querySelector(".fav-del-btn").onclick = function() { deleteFavorite(fav.name); };
+      ul.appendChild(li);
+    });
+  }
+
+  // ---- History ----
+  function saveHistory() {
+    if (foods.length === 0) return;
+    var history = JSON.parse(localStorage.getItem("omad_history") || "{}");
+    history[todayKey()] = { foods: foods, water: waterMl, goal: goal };
+    localStorage.setItem("omad_history", JSON.stringify(history));
+  }
+
+  function renderHistory() {
+    var history = JSON.parse(localStorage.getItem("omad_history") || "{}");
+    var keys = Object.keys(history).sort(function(a, b) { return b.localeCompare(a); });
+    var cont = document.getElementById("historyContainer");
+    if (keys.length === 0) {
+      cont.innerHTML = "<div class='no-history'>Henüz geçmiş yok.<br>Bugün yemek ekledikten sonra burada görünecek.</div>";
+      return;
+    }
+    cont.innerHTML = "";
+    keys.forEach(function(dateKey) {
+      var day = history[dateKey];
+      var totalCal = day.foods.reduce(function(s, f) { return s + f.cal; }, 0);
+      var totalProt = day.foods.reduce(function(s, f) { return s + (f.protein || 0); }, 0);
+      var totalCarb = day.foods.reduce(function(s, f) { return s + (f.carb || 0); }, 0);
+      var totalFat = day.foods.reduce(function(s, f) { return s + (f.fat || 0); }, 0);
+      var div = document.createElement("div");
+      div.className = "history-day";
+      var foodRows = day.foods.map(function(f) {
+        return "<div class='history-food-row'><span>" + f.name + " <span style='color:var(--muted)'>" + f.grams + "g</span></span><span style='color:var(--accent);font-family:Bebas Neue,sans-serif;'>" + f.cal + " kcal</span></div>";
+      }).join("");
+      var waterLine = day.water > 0 ? "<div class='history-water'>💧 " + day.water + " ml su içildi</div>" : "";
+      var bodyId = "hbody_" + dateKey;
+      var chevId = "hchev_" + dateKey;
+      div.innerHTML =
+        "<div class='history-day-header' onclick='toggleHistory(\"" + bodyId + "\",\"" + chevId + "\")'>" +
+          "<div><div class='history-date'>" + formatDateTR(dateKey) + "</div><div class='history-macros-row'>P:" + totalProt + "g · K:" + totalCarb + "g · Y:" + totalFat + "g</div></div>" +
+          "<div style='display:flex;align-items:center;gap:12px;'><span class='history-kcal'>" + totalCal + " kcal</span><span class='history-chevron' id='" + chevId + "'>▼</span></div>" +
+        "</div>" +
+        "<div class='history-body' id='" + bodyId + "'>" + foodRows + waterLine + "</div>";
+      cont.appendChild(div);
+    });
+  }
+
+  function toggleHistory(bodyId, chevId) {
+    document.getElementById(bodyId).classList.toggle("open");
+    document.getElementById(chevId).classList.toggle("open");
+  }
+
+  // ---- Goal ----
   function setGoal() {
-    const val = parseInt(document.getElementById("goalInput").value);
+    var val = parseInt(document.getElementById("goalInput").value);
     if (!val || val <= 0) { showToast("❗ Geçerli hedef gir!", "#ff4d00"); return; }
     goal = val;
     localStorage.setItem("omad_goal", goal);
@@ -339,65 +698,76 @@
     showToast("🎯 Hedef kaydedildi!");
   }
 
+  // ---- Render ----
   function renderList() {
-    const ul = document.getElementById("list");
+    var ul = document.getElementById("list");
     ul.innerHTML = "";
     if (foods.length === 0) {
-      const li = document.createElement("li");
-      li.className = "empty-msg";
-      li.textContent = "Henüz yemek eklenmedi 🍽️";
-      ul.appendChild(li);
+      ul.innerHTML = "<li class='empty-msg'>Henüz yemek eklenmedi 🍽️</li>";
       return;
     }
-    foods.forEach(f => {
-      const li = document.createElement("li");
+    foods.forEach(function(f) {
+      var li = document.createElement("li");
       li.className = "food-item";
-      li.innerHTML = `
-        <div class="food-item-top">
-          <span class="food-name">${f.name}<span class="food-gram">${f.grams}g</span></span>
-          <div class="food-right">
-            <span class="food-kcal">${f.cal} kcal</span>
-            <button class="delete-btn" onclick="deleteFood(${f.id})">✕</button>
-          </div>
-        </div>
-        <div class="food-macros">
-          <span class="fm-p">P: ${f.protein}g</span>
-          <span class="fm-c">K: ${f.carb}g</span>
-          <span class="fm-f">Y: ${f.fat}g</span>
-        </div>`;
+      li.innerHTML =
+        "<div class='food-item-top'>" +
+          "<span class='food-name'>" + f.name + "<span class='food-gram'>" + f.grams + "g</span></span>" +
+          "<div class='food-right'><span class='food-kcal'>" + f.cal + " kcal</span><button class='delete-btn'>✕</button></div>" +
+        "</div>" +
+        "<div class='food-macros'><span class='fm-p'>P: " + f.protein + "g</span><span class='fm-c'>K: " + f.carb + "g</span><span class='fm-f'>Y: " + f.fat + "g</span></div>";
+      li.querySelector(".delete-btn").onclick = function() { deleteFood(f.id); };
       ul.appendChild(li);
     });
   }
 
   function updateTotals() {
-    const totalCal  = foods.reduce((s, f) => s + f.cal, 0);
-    const totalProt = foods.reduce((s, f) => s + (f.protein || 0), 0);
-    const totalCarb = foods.reduce((s, f) => s + (f.carb || 0), 0);
-    const totalFat  = foods.reduce((s, f) => s + (f.fat || 0), 0);
-
+    var totalCal  = foods.reduce(function(s,f) { return s+f.cal; }, 0);
+    var totalProt = foods.reduce(function(s,f) { return s+(f.protein||0); }, 0);
+    var totalCarb = foods.reduce(function(s,f) { return s+(f.carb||0); }, 0);
+    var totalFat  = foods.reduce(function(s,f) { return s+(f.fat||0); }, 0);
     document.getElementById("totalDisplay").textContent = totalCal;
-    document.getElementById("goalDisplay").textContent = ` / ${goal} kcal`;
+    document.getElementById("goalDisplay").textContent = " / " + goal + " kcal";
     document.getElementById("totalProtein").textContent = totalProt + "g";
     document.getElementById("totalCarb").textContent = totalCarb + "g";
     document.getElementById("totalFat").textContent = totalFat + "g";
-
-    const pct = Math.min((totalCal / goal) * 100, 100);
-    const fill = document.getElementById("progressFill");
+    var pct = Math.min((totalCal / goal) * 100, 100);
+    var fill = document.getElementById("progressFill");
     fill.style.width = pct + "%";
     fill.classList.toggle("over", totalCal > goal);
+    saveHistory();
+  }
+
+  // ---- Tab ----
+  function switchTab(name) {
+    var tabs = ["today", "favorites", "history"];
+    document.querySelectorAll(".tab-btn").forEach(function(btn, i) {
+      btn.classList.toggle("active", tabs[i] === name);
+    });
+    document.querySelectorAll(".tab-panel").forEach(function(p) { p.classList.remove("active"); });
+    document.getElementById("tab-" + name).classList.add("active");
+    if (name === "history") renderHistory();
+    if (name === "favorites") renderFavList();
   }
 
   function saveData() {
-    localStorage.setItem("omad_foods", JSON.stringify(foods));
+    localStorage.setItem("omad_foods_" + todayKey(), JSON.stringify(foods));
   }
 
-  function showToast(msg, color = "#00c896") {
-    const t = document.getElementById("toast");
+  function formatDateTR(dateStr) {
+    var d = new Date(dateStr + "T12:00:00");
+    var days = ["Pazar","Pazartesi","Salı","Çarşamba","Perşembe","Cuma","Cumartesi"];
+    var months = ["Ocak","Şubat","Mart","Nisan","Mayıs","Haziran","Temmuz","Ağustos","Eylül","Ekim","Kasım","Aralık"];
+    return days[d.getDay()] + ", " + d.getDate() + " " + months[d.getMonth()] + " " + d.getFullYear();
+  }
+
+  function showToast(msg, color) {
+    color = color || "#00c896";
+    var t = document.getElementById("toast");
     t.textContent = msg;
     t.style.background = color;
     t.style.color = (color === "#ff4d00" || color === "#ff8c00") ? "#fff" : "#000";
     t.classList.add("show");
-    setTimeout(() => t.classList.remove("show"), 2200);
+    setTimeout(function() { t.classList.remove("show"); }, 2200);
   }
 </script>
 </body>
