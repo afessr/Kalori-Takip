@@ -1,0 +1,102 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+  <meta charset="UTF-8">
+  <title>Kalori Takip</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <link rel="manifest" href="manifest.json">
+</head>
+<body>
+
+<h2>Kalori Takip Uygulaması</h2>
+
+<input id="food" placeholder="Yemek adı"><br><br>
+<input id="cal" type="number" placeholder="Kalori"><br><br>
+<input id="protein" type="number" placeholder="Protein (g)"><br><br>
+<input id="carb" type="number" placeholder="Karbonhidrat (g)"><br><br>
+<input id="fat" type="number" placeholder="Yağ (g)"><br><br>
+
+<button onclick="addFood()">Ekle</button>
+
+<h3>Toplam</h3>
+<p id="totals"></p>
+
+<h3>Hedef</h3>
+<input id="goal" type="number" placeholder="Kalori hedefi">
+<button onclick="setGoal()">Kaydet</button>
+<p id="goalStatus"></p>
+
+<h3>Liste</h3>
+<ul id="list"></ul>
+
+<canvas id="chart" width="300" height="300"></canvas>
+
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
+<script>
+let foods = JSON.parse(localStorage.getItem("foods")) || [];
+let goal = localStorage.getItem("goal") || 2000;
+
+function save() {
+  localStorage.setItem("foods", JSON.stringify(foods));
+}
+
+function addFood() {
+  let item = {
+    name: food.value,
+    cal: +cal.value,
+    protein: +protein.value,
+    carb: +carb.value,
+    fat: +fat.value
+  };
+  foods.push(item);
+  save();
+  render();
+}
+
+function setGoal() {
+  goal = goalInput.value;
+  localStorage.setItem("goal", goal);
+  render();
+}
+
+function render() {
+  list.innerHTML = "";
+  let totalCal=0, totalP=0, totalC=0, totalF=0;
+
+  foods.forEach(f => {
+    list.innerHTML += `<li>${f.name} - ${f.cal} kcal</li>`;
+    totalCal += f.cal;
+    totalP += f.protein;
+    totalC += f.carb;
+    totalF += f.fat;
+  });
+
+  totals.innerHTML = `
+  Kalori: ${totalCal} <br>
+  Protein: ${totalP}g <br>
+  Karbonhidrat: ${totalC}g <br>
+  Yağ: ${totalF}g`;
+
+  goalStatus.innerText = `Hedef: ${goal} kcal | Kalan: ${goal-totalCal}`;
+
+  drawChart(totalP, totalC, totalF);
+}
+
+function drawChart(p,c,f){
+  new Chart(document.getElementById("chart"), {
+    type: 'pie',
+    data: {
+      labels: ['Protein','Karbonhidrat','Yağ'],
+      datasets: [{
+        data: [p,c,f]
+      }]
+    }
+  });
+}
+
+render();
+</script>
+
+</body>
+</html>
