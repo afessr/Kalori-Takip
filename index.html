@@ -2,7 +2,7 @@
 <html lang="tr">
 <head>
 <meta charset="UTF-8">
-<title>OMAD Kalori Takip | Mobil</title>
+<title>OMAD Kalori Takip | Önerili</title>
 <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <style>
@@ -17,38 +17,43 @@ button:hover{opacity:0.9;}
 .yellow{background:#ffcc00;color:#000;}
 .red{background:#ff3b30;}
 .mini-bar{height:6px;width:100%;border-radius:3px;margin:2px 0;}
+.suggestions{border:1px solid #ccc;background:#fff;max-height:120px;overflow-y:auto;position:absolute;width:calc(100% - 26px);z-index:100;}
+.suggestions div{padding:4px;cursor:pointer;}
+.suggestions div:hover{background:#0a84ff;color:#fff;}
+.relative{position:relative;}
 </style>
 </head>
 <body>
 
-<h2>🔥 OMAD Kalori Takip</h2>
+<h2>🔥 OMAD Kalori Takip | Önerili</h2>
 <h3 id="today"></h3>
 
 <div class="card">
 <h3>Tek Öğün Girişi</h3>
-<div>
+<div class="relative">
   <label>Yemek Adı</label>
-  <input id="mealName" placeholder="Örn: Tavuk + Pirinç">
+  <input id="mealName" placeholder="Örn: Tavuk + Pirinç" oninput="showSuggestions()">
+  <div id="suggestions" class="suggestions"></div>
 </div>
 <div>
   <label>Gram (100g baz)</label>
-  <input type="number" id="mealGram" value="100">
+  <input type="number" id="mealGram" value="100" oninput="autoFill()">
 </div>
 <div>
-  <label>Kalori (100g)</label>
-  <input type="number" id="mealCal" value="200">
+  <label>Kalori</label>
+  <input type="number" id="mealCal" value="0">
 </div>
 <div>
-  <label>Protein (100g)</label>
-  <input type="number" id="mealProt" value="16">
+  <label>Protein</label>
+  <input type="number" id="mealProt" value="0">
 </div>
 <div>
-  <label>Karbonhidrat (100g)</label>
-  <input type="number" id="mealCarb" value="20">
+  <label>Karbonhidrat</label>
+  <input type="number" id="mealCarb" value="0">
 </div>
 <div>
-  <label>Yağ (100g)</label>
-  <input type="number" id="mealFat" value="4">
+  <label>Yağ</label>
+  <input type="number" id="mealFat" value="0">
 </div>
 <div>
   <label>Porsiyon</label>
@@ -87,7 +92,44 @@ let data = JSON.parse(localStorage.getItem("data")) || {};
 if(!data[currentDay]) data[currentDay]=[];
 let goal = 1800;
 
+// Önceden tanımlı yemek listesi
+let mealsDB=[
+  {name:"Tavuk + Pirinç",cal:200,protein:16,carb:20,fat:4},
+  {name:"Ton Balığı Salata",cal:175,protein:17.5,carb:5,fat:7.5},
+  {name:"Yumurta + Lor",cal:150,protein:12.5,carb:2.5,fat:7.5},
+  {name:"Lor Peynirli Sandviç",cal:200,protein:15,carb:17.5,fat:6},
+  {name:"Badem + Yoğurt",cal:125,protein:7.5,carb:5,fat:9},
+];
+
 function save(){ localStorage.setItem("data",JSON.stringify(data)); }
+
+function showSuggestions(){
+  let input=document.getElementById("mealName").value.toLowerCase();
+  let suggestions=document.getElementById("suggestions");
+  suggestions.innerHTML="";
+  if(!input) return;
+  mealsDB.forEach(m=>{
+    if(m.name.toLowerCase().includes(input)){
+      let div=document.createElement("div");
+      div.innerText=m.name;
+      div.onclick=()=>{document.getElementById("mealName").value=m.name; suggestions.innerHTML=""; autoFill();};
+      suggestions.appendChild(div);
+    }
+  });
+  autoFill();
+}
+
+function autoFill(){
+  let name=document.getElementById("mealName").value.toLowerCase();
+  let gram=+document.getElementById("mealGram").value||100;
+  let meal = mealsDB.find(m=>m.name.toLowerCase()===name);
+  if(meal){
+    document.getElementById("mealCal").value=(meal.cal*gram/100).toFixed(1);
+    document.getElementById("mealProt").value=(meal.protein*gram/100).toFixed(1);
+    document.getElementById("mealCarb").value=(meal.carb*gram/100).toFixed(1);
+    document.getElementById("mealFat").value=(meal.fat*gram/100).toFixed(1);
+  }
+}
 
 function updateTotals(){
   if(!data[currentDay]) data[currentDay]=[];
@@ -106,12 +148,10 @@ function updateTotals(){
   else if(totalCal>goal) totalElem.className="total red";
   else totalElem.className="total yellow";
 
-  // Günlük Grafik
   let ctx = document.getElementById("chart").getContext("2d");
   if(window.dailyChart) window.dailyChart.destroy();
   window.dailyChart=new Chart(ctx,{type:'bar',data:{labels:['Kalori','Protein','Karbonhidrat','Yağ'],datasets:[{label:'Bugün',data:[totalCal,totalProt,totalCarb,totalFat],backgroundColor:['#0a84ff','#34c759','#ff9500','#ff3b30']}]},options:{responsive:true,plugins:{legend:{display:false}}}});
 
-  // Haftalık Grafik
   let weekLabels=[],weekData=[];
   for(let i=6;i>=0;i--){
     let d=new Date();
@@ -128,27 +168,15 @@ function updateTotals(){
 
 function addMeal(){
   let name=document.getElementById("mealName").value||"Öğün";
-  let gram=+document.getElementById("mealGram").value||100;
   let cal=+document.getElementById("mealCal").value||0;
   let protein=+document.getElementById("mealProt").value||0;
   let carb=+document.getElementById("mealCarb").value||0;
   let fat=+document.getElementById("mealFat").value||0;
   let portion=+document.getElementById("mealPortion").value||1;
-  let factor=gram/100*portion;
+  let factor=portion;
   data[currentDay].push({name,cal:cal*factor,protein:protein*factor,carb:carb*factor,fat:fat*factor});
   save();
   updateTotals();
-  renderMiniBars(cal*factor,protein*factor,carb*factor,fat*factor);
-}
-
-function renderMiniBars(c,p,carb,f){
-  let container=document.getElementById("miniBars");
-  container.innerHTML=`
-    <div class="mini-bar" style="background:linear-gradient(to right,#0a84ff ${c}%,#ddd 0)">Kalori ${c.toFixed(1)}</div>
-    <div class="mini-bar" style="background:linear-gradient(to right,#34c759 ${p}%,#ddd 0)">Protein ${p.toFixed(1)}</div>
-    <div class="mini-bar" style="background:linear-gradient(to right,#ff9500 ${carb}%,#ddd 0)">Karb ${carb.toFixed(1)}</div>
-    <div class="mini-bar" style="background:linear-gradient(to right,#ff3b30 ${f}%,#ddd 0)">Yağ ${f.toFixed(1)}</div>
-  `;
 }
 
 updateTotals();
