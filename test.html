@@ -1,0 +1,39 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+  <meta charset="UTF-8">
+  <title>TEST</title>
+</head>
+<body>
+
+<input type="text" id="food" placeholder="Yemek yaz">
+<div id="box"></div>
+
+<script>
+const list = ["Tavuk + Pirinç", "Ton Balığı + Pirinç"];
+
+document.getElementById("food").addEventListener("input", function() {
+  const val = this.value.toLowerCase();
+  const box = document.getElementById("box");
+  box.innerHTML = "";
+
+  if (!val) return;
+
+  list.forEach(item => {
+    if(item.toLowerCase().includes(val)){
+      const div = document.createElement("div");
+      div.textContent = item;
+
+      div.onclick = () => {
+        document.getElementById("food").value = item;
+        box.innerHTML = "";
+      };
+
+      box.appendChild(div);
+    }
+  });
+});
+</script>
+
+</body>
+</html>
