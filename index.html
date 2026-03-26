@@ -2,53 +2,34 @@
 <html lang="tr">
 <head>
 <meta charset="UTF-8">
-<title>OMAD Dashboard | Favori Analizi & Öneri</title>
+<title>OMAD Mobil Dashboard</title>
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 <style>
-body{margin:0;padding:0;font-family:sans-serif;background:#f4f4f4;transition:background 0.3s,color 0.3s;}
-h2,h3{margin:5px 10px;}
-.card{margin:10px;padding:12px;background:#fff;border-radius:12px;box-shadow:0 2px 6px rgba(0,0,0,0.2);}
-input, select{margin:4px 0;padding:6px;border-radius:6px;border:1px solid #ccc;width:100%;box-sizing:border-box;font-size:1rem;}
-button{margin:4px 0;padding:10px;border:none;border-radius:8px;background:#0a84ff;color:#fff;cursor:pointer;width:100%;font-size:1rem;transition:opacity 0.2s;}
-button:hover{opacity:0.9;}
-.total{font-weight:bold;padding:8px;border-radius:8px;color:#fff;text-align:center;font-size:1.1rem;}
-.mini-bar{height:12px;width:100%;border-radius:6px;margin:4px 0;background:#ddd;position:relative;transition:background 0.3s;}
-.mini-bar-fill{height:100%;border-radius:6px;position:absolute;left:0;top:0;transition:width 0.3s,background 0.3s;}
+body{margin:0;padding:5px;font-family:sans-serif;background:#f4f4f4;color:#222;}
+h2,h3{margin:5px 0;font-size:1rem;}
+.card{margin:5px 0;padding:8px;background:#fff;border-radius:8px;box-shadow:0 1px 3px rgba(0,0,0,0.2);}
+input, select, button{margin:4px 0;padding:6px;border-radius:6px;border:1px solid #ccc;width:100%;font-size:0.9rem;}
+button{background:#0a84ff;color:#fff;border:none;cursor:pointer;}
+button:hover{opacity:0.85;}
+.total{font-weight:bold;padding:4px;border-radius:6px;color:#fff;text-align:center;font-size:0.9rem;}
+.mini-bar{height:10px;width:100%;border-radius:5px;margin:2px 0;background:#ddd;position:relative;}
+.mini-bar-fill{height:100%;border-radius:5px;position:absolute;left:0;top:0;}
 .relative{position:relative;}
-.suggestions{border:1px solid #ccc;background:#fff;max-height:150px;overflow-y:auto;position:absolute;width:calc(100% - 24px);z-index:100;}
-.suggestions div{padding:6px;cursor:pointer;}
+.suggestions{border:1px solid #ccc;background:#fff;max-height:120px;overflow-y:auto;position:absolute;width:calc(100% - 16px);z-index:100;}
+.suggestions div{padding:4px;cursor:pointer;}
 .suggestions div:hover{background:#0a84ff;color:#fff;}
-.favorite-btn{background:#ff9500;margin-top:4px;}
-canvas{max-width:100%;}
-.dark body{background:#222;color:#eee;}
-.dark .card{background:#333;color:#eee;}
-.comment{margin:5px 0;padding:8px;border-radius:8px;background:#f0f0f0;}
 .green{background:#34c759;}
 .yellow{background:#ffcc00;}
 .red{background:#ff3b30;}
+.comment{margin:3px 0;padding:4px;border-radius:6px;background:#f0f0f0;font-size:0.85rem;}
+.dark body{background:#222;color:#eee;}
+.dark .card{background:#333;color:#eee;}
 </style>
 </head>
 <body>
 
-<h2>🔥 OMAD Dashboard | Favori Analizi & Öneri</h2>
-
-<div class="card">
-<h3>Tema ve Renk Seçenekleri</h3>
-<label>Tema:</label>
-<select id="themeSelect">
-<option value="light">Açık</option>
-<option value="dark">Koyu</option>
-<option value="custom">Özel</option>
-</select>
-<div id="customColors" style="display:none;">
-<label>Kalori Rengi:</label><input type="color" id="colorCal" value="#0a84ff">
-<label>Protein Rengi:</label><input type="color" id="colorProt" value="#34c759">
-<label>Karbonhidrat Rengi:</label><input type="color" id="colorCarb" value="#ffcc00">
-<label>Yağ Rengi:</label><input type="color" id="colorFat" value="#ff3b30">
-<button onclick="applyCustomColors()">Uygula</button>
-</div>
-</div>
+<h2>🔥 OMAD Mobil Dashboard</h2>
 
 <div class="card">
 <h3>Gün Seçimi</h3>
@@ -58,16 +39,10 @@ canvas{max-width:100%;}
 <div class="card">
 <h3>Öğün Ekle</h3>
 <div class="relative">
-<label>Yemek Adı</label>
 <input id="mealName" placeholder="Örn: Tavuk + Pirinç" oninput="showSuggestions()">
 <div id="suggestions" class="suggestions"></div>
 </div>
-<div>
-<label>Gram (100g baz)</label>
-<input type="number" id="mealGram" value="100">
-</div>
-<div>
-<label>Porsiyon</label>
+<input type="number" id="mealGram" value="100" placeholder="Gram">
 <select id="mealPortion">
 <option value="0.25">0.25x</option>
 <option value="0.5">0.5x</option>
@@ -75,9 +50,8 @@ canvas{max-width:100%;}
 <option value="1.5">1.5x</option>
 <option value="2">2x</option>
 </select>
-</div>
 <button onclick="addMeal()">➕ Ekle</button>
-<button onclick="saveFavorite()" class="favorite-btn">⭐ Favori Ekle</button>
+<button onclick="saveFavorite()">⭐ Favori Ekle</button>
 </div>
 
 <div class="card">
@@ -86,7 +60,7 @@ canvas{max-width:100%;}
 </div>
 
 <div class="card">
-<h3>Favori Performans Analizi</h3>
+<h3>Favori Analizi</h3>
 <div id="favoriteAnalysis"></div>
 <div id="bestMealSuggestion" class="comment"></div>
 </div>
@@ -105,27 +79,15 @@ canvas{max-width:100%;}
 <canvas id="dailyChart"></canvas>
 </div>
 
-<div class="card">
-<h3>Haftalık Kalori Trend</h3>
-<canvas id="weeklyChart"></canvas>
-</div>
-
-<div class="card">
-<h3>Aylık Ortalama Kalori Trend</h3>
-<canvas id="monthlyChart"></canvas>
-</div>
-
 <script>
-// Temel ayarlar
 let goal=1800;
 let todayDate=new Date().toISOString().split('T')[0];
 let currentDay=todayDate;
 document.getElementById("datePicker").value=todayDate;
 let data=JSON.parse(localStorage.getItem("data"))||{};
 let favorites=JSON.parse(localStorage.getItem("favorites"))||[];
-let userColors=JSON.parse(localStorage.getItem("userColors"))||{cal:'#0a84ff',prot:'#34c759',carb:'#ffcc00',fat:'#ff3b30'};
+let userColors={cal:'#0a84ff',prot:'#34c759',carb:'#ffcc00',fat:'#ff3b30'};
 if(!data[currentDay]) data[currentDay]=[];
-
 let mealsDB=[
 {name:"Tavuk + Pirinç",cal:200,protein:16,carb:20,fat:4},
 {name:"Ton Balığı Salata",cal:175,protein:17.5,carb:5,fat:7.5},
@@ -133,45 +95,6 @@ let mealsDB=[
 {name:"Lor Peynirli Sandviç",cal:200,protein:15,carb:17.5,fat:6},
 {name:"Badem + Yoğurt",cal:125,protein:7.5,carb:5,fat:9},
 ];
-
-// Tema fonksiyonları
-function applyTheme(theme){
-document.body.classList.remove('dark');
-if(theme==='dark'){document.body.classList.add('dark');document.getElementById('customColors').style.display='none';}
-else if(theme==='custom'){document.getElementById('customColors').style.display='block';}
-else{document.getElementById('customColors').style.display='none';}
-updateCharts();
-renderMeals();
-updateFavoriteAnalysis();
-}
-function applyCustomColors(){
-userColors={cal:document.getElementById('colorCal').value,prot:document.getElementById('colorProt').value,carb:document.getElementById('colorCarb').value,fat:document.getElementById('colorFat').value};
-localStorage.setItem('userColors',JSON.stringify(userColors));
-updateCharts();
-renderMeals();
-updateFavoriteAnalysis();
-}
-document.getElementById('themeSelect').addEventListener('change',e=>applyTheme(e.target.value));
-applyTheme('light');
-
-// Autocomplete
-function showSuggestions(){
-let input=document.getElementById("mealName").value.toLowerCase();
-let suggestions=document.getElementById("suggestions");
-suggestions.innerHTML="";
-if(!input) return;
-mealsDB.concat(favorites).forEach(m=>{
-if(m.name.toLowerCase().includes(input)){
-let div=document.createElement("div");
-div.innerText=m.name;
-div.onclick=()=>{
-document.getElementById("mealName").value=m.name;
-suggestions.innerHTML="";
-};
-suggestions.appendChild(div);
-}
-});
-}
 
 document.getElementById("datePicker").addEventListener("change",()=>{
 currentDay=document.getElementById("datePicker").value;
@@ -182,11 +105,23 @@ updateCharts();
 updateFavoriteAnalysis();
 });
 
-// Kaydetme fonksiyonları
+function showSuggestions(){
+let input=document.getElementById("mealName").value.toLowerCase();
+let suggestions=document.getElementById("suggestions");
+suggestions.innerHTML="";
+if(!input) return;
+mealsDB.concat(favorites).forEach(m=>{
+if(m.name.toLowerCase().includes(input)){
+let div=document.createElement("div");
+div.innerText=m.name;
+div.onclick=()=>{document.getElementById("mealName").value=m.name;suggestions.innerHTML="";};
+suggestions.appendChild(div);
+}});
+}
+
 function save(){ localStorage.setItem("data",JSON.stringify(data)); }
 function saveFavorites(){ localStorage.setItem("favorites",JSON.stringify(favorites)); }
 
-// Öğün ekleme
 function addMeal(){
 let name=document.getElementById("mealName").value||"Öğün";
 let gram=+document.getElementById("mealGram").value||100;
@@ -205,7 +140,6 @@ updateCharts();
 updateFavoriteAnalysis();
 }
 
-// Favori ekleme
 function saveFavorite(){
 let name=document.getElementById("mealName").value;
 let gram=+document.getElementById("mealGram").value||100;
@@ -221,26 +155,24 @@ renderFavorites();
 updateFavoriteAnalysis();
 }
 
-// Favori listeleme
 function renderFavorites(){
 let container=document.getElementById("favoriteMeals");
 container.innerHTML="";
 favorites.forEach((f,i)=>{
 let div=document.createElement("div");
-div.style.margin="4px 0";
+div.style.margin="2px 0";
 div.innerHTML=`${f.name} <button onclick="useFavorite(${i})">Ekle</button> <button onclick="deleteFavorite(${i})">Sil</button>`;
 container.appendChild(div);
 });
 }
 
-// Favori kullan
 function useFavorite(i){
 let f=favorites[i];
 document.getElementById("mealName").value=f.name;
 document.getElementById("mealGram").value=100;
+document.getElementById("mealPortion").value=1;
 }
 
-// Favori sil
 function deleteFavorite(i){
 favorites.splice(i,1);
 saveFavorites();
@@ -248,7 +180,6 @@ renderFavorites();
 updateFavoriteAnalysis();
 }
 
-// Öğün listeleme
 function renderMeals(){
 let container=document.getElementById("mealsContainer");
 container.innerHTML="";
@@ -276,7 +207,6 @@ container.appendChild(card);
 });
 }
 
-// Öğün sil
 function deleteMeal(i){
 data[currentDay].splice(i,1);
 save();
@@ -286,13 +216,12 @@ updateCharts();
 updateFavoriteAnalysis();
 }
 
-// Toplam değerler ve yorum
 function updateTotals(){
 let totalCal=0,totalProt=0,totalCarb=0,totalFat=0;
 if(!data[currentDay]) data[currentDay]=[];
 data[currentDay].forEach(m=>{totalCal+=m.cal;totalProt+=m.protein;totalCarb+=m.carb;totalFat+=m.fat;});
 let totalElem=document.getElementById("totals");
-totalElem.innerText=`Kalori: ${totalCal.toFixed(1)} kcal | Protein: ${totalProt.toFixed(1)} g | Karbonhidrat: ${totalCarb.toFixed(1)} g | Yağ: ${totalFat.toFixed(1)} g`;
+totalElem.innerText=`Kalori: ${totalCal.toFixed(1)} kcal | Protein: ${totalProt.toFixed(1)} g | Karb: ${totalCarb.toFixed(1)} g | Yağ: ${totalFat.toFixed(1)} g`;
 totalElem.className="total "+(totalCal<goal?"green":totalCal>goal?"red":"yellow");
 updateTrendComment(totalCal,totalProt,totalCarb,totalFat);
 }
@@ -300,14 +229,13 @@ updateTrendComment(totalCal,totalProt,totalCarb,totalFat);
 function updateTrendComment(cal,prot,carb,fat){
 let comment=document.getElementById("trendComment");
 let msgs=[];
-msgs.push(cal<goal?"Kalorin hedefin altında.":cal>goal?"Kalorin hedefin üstünde.":"Kalorin hedefin dengede.");
-msgs.push(prot<goal*0.3?"Protein az.":prot>goal*0.3*1.2?"Protein fazla.":"Protein dengeli.");
-msgs.push(carb<goal*0.4?"Karbonhidrat az.":carb>goal*0.4*1.2?"Karbonhidrat fazla.":"Karbonhidrat dengeli.");
-msgs.push(fat<goal*0.3?"Yağ az.":fat>goal*0.3*1.2?"Yağ fazla.":"Yağ dengeli.");
+msgs.push(cal<goal?"Kalori az":cal>goal?"Kalori fazla":"Kalori dengede");
+msgs.push(prot<goal*0.3?"Protein az":prot>goal*0.3*1.2?"Protein fazla":"Protein dengeli");
+msgs.push(carb<goal*0.4?"Karbonhidrat az":carb>goal*0.4*1.2?"Karbonhidrat fazla":"Karbonhidrat dengeli");
+msgs.push(fat<goal*0.3?"Yağ az":fat>goal*0.3*1.2?"Yağ fazla":"Yağ dengeli");
 comment.innerHTML=msgs.join('<br>');
 }
 
-// CSV İndir
 function exportCSV(){
 if(!data[currentDay] || data[currentDay].length===0){ alert("Veri yok"); return; }
 let csv="Yemek,Kalori,Protein,Karbonhidrat,Yağ\n";
@@ -315,19 +243,15 @@ data[currentDay].forEach(m=>{csv+=`${m.name},${m.cal},${m.protein},${m.carb},${m
 let blob=new Blob([csv],{type:"text/csv"});
 let url=URL.createObjectURL(blob);
 let a=document.createElement("a");
-a.href=url;
-a.download=`OMAD_${currentDay}.csv`;
-a.click();
-URL.revokeObjectURL(url);
+a.href=url;a.download=`OMAD_${currentDay}.csv`;a.click();URL.revokeObjectURL(url);
 }
 
-// ===== Favori Analiz ve Öneri =====
+// Favori Analiz ve Öneri
 function updateFavoriteAnalysis(){
 let container=document.getElementById("favoriteAnalysis");
 let bestContainer=document.getElementById("bestMealSuggestion");
-container.innerHTML="";
-bestContainer.innerHTML="";
-if(favorites.length===0){container.innerHTML="Favori öğün yok."; return;}
+container.innerHTML="";bestContainer.innerHTML="";
+if(favorites.length===0){container.innerHTML="Favori öğün yok.";return;}
 let scores=[];
 favorites.forEach(f=>{
 let score=0;
@@ -338,34 +262,43 @@ score+=Math.min(f.fat/(goal*0.3),1);
 scores.push({f,score});
 let color=score>=3.5?"green":score>=2.5?"yellow":"red";
 let div=document.createElement("div");
-div.className=color;
-div.innerHTML=`${f.name} - Uygunluk: ${score.toFixed(2)}`;
+div.className=color;div.innerHTML=`${f.name} - Uygunluk: ${score.toFixed(2)}`;
 container.appendChild(div);
 });
 scores.sort((a,b)=>b.score-a.score);
-bestContainer.innerHTML=`En dengeli favori öğün: ${scores[0].f.name} 🟢`;
+let bestMeal=scores[0].f;
+if(data[currentDay].length===0){
+bestContainer.innerHTML=`En dengeli favori: <span style="text-decoration:underline;cursor:pointer;color:#0a84ff;" onclick="useFavoriteByName('${bestMeal.name}')">${bestMeal.name}</span> 🟢 <button onclick="hideSuggestion()">✖</button>`;
+}
 }
 
-// Grafikler
-let dailyChart,weeklyChart,monthlyChart;
+function useFavoriteByName(name){
+let meal=favorites.find(f=>f.name===name);
+if(!meal) return;
+document.getElementById("mealName").value=meal.name;
+document.getElementById("mealGram").value=100;
+document.getElementById("mealPortion").value=1;
+}
+
+function hideSuggestion(){document.getElementById("bestMealSuggestion").innerHTML="";}
+
+// Grafik
+let dailyChart;
 function updateCharts(){
 if(!data[currentDay]) data[currentDay]=[];
 let totalCal=0,totalProt=0,totalCarb=0,totalFat=0;
 data[currentDay].forEach(m=>{totalCal+=m.cal;totalProt+=m.protein;totalCarb+=m.carb;totalFat+=m.fat;});
 let ctx=document.getElementById("dailyChart").getContext("2d");
 if(dailyChart) dailyChart.destroy();
-dailyChart=new Chart(ctx,{type:'bar',data:{labels:['Kalori','Protein','Karbonhidrat','Yağ'],datasets:[{label:'Bugün',data:[totalCal,totalProt,totalCarb,totalFat],backgroundColor:[userColors.cal,userColors.prot,userColors.carb,userColors.fat]}]},options:{responsive:true,plugins:{legend:{display:false}}}});
-
-// Haftalık ve Aylık grafikleri benzer şekilde eklenebilir
+dailyChart=new Chart(ctx,{type:'bar',data:{labels:['Kalori','Protein','Karb','Yağ'],datasets:[{label:'Bugün',data:[totalCal,totalProt,totalCarb,totalFat],backgroundColor:[userColors.cal,userColors.prot,userColors.carb,userColors.fat]}]},options:{responsive:true,plugins:{legend:{display:false}}}});
 }
 
-// Başlangıç render
+// Başlangıç
 renderFavorites();
 renderMeals();
 updateTotals();
 updateCharts();
 updateFavoriteAnalysis();
-
 </script>
 </body>
 </html>
