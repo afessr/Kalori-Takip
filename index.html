@@ -2,20 +2,16 @@
 <html lang="tr">
 <head>
 <meta charset="UTF-8">
-<title>Kalori Takip Pro | Gelişmiş Mobil</title>
+<title>OMAD Kalori Takip | Mobil</title>
 <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <style>
 body{font-family:sans-serif;margin:0;padding:0;background:#f4f4f4;}
 h2,h3{margin:5px 10px;}
 .card{margin:10px;padding:12px;background:#fff;border-radius:10px;box-shadow:0 1px 5px rgba(0,0,0,0.2);}
-input, select, textarea{margin:3px 0;padding:5px;border-radius:4px;border:1px solid #ccc;width:100%;box-sizing:border-box;}
+input, select{margin:3px 0;padding:5px;border-radius:4px;border:1px solid #ccc;width:100%;box-sizing:border-box;}
 button{margin:3px 0;padding:8px;border:none;border-radius:6px;background:#0a84ff;color:#fff;cursor:pointer;width:100%;}
 button:hover{opacity:0.9;}
-label{font-size:12px;display:block;margin-top:4px;font-weight:600;}
-.draggable{padding:6px;border:1px solid #ddd;margin:4px;border-radius:6px;background:#fafafa;display:flex;flex-direction:column;gap:4px;}
-.favorite{color:gold;cursor:pointer;font-size:24px;align-self:flex-end;}
-canvas{max-width:100%;height:250px !important;}
 .total{font-weight:bold;padding:6px;border-radius:6px;color:#fff;text-align:center;}
 .green{background:#34c759;}
 .yellow{background:#ffcc00;color:#000;}
@@ -25,26 +21,51 @@ canvas{max-width:100%;height:250px !important;}
 </head>
 <body>
 
-<h2>🔥 Kalori Takip Pro | Gelişmiş</h2>
+<h2>🔥 OMAD Kalori Takip</h2>
 <h3 id="today"></h3>
 
 <div class="card">
-<h3>Hazır Yemekler</h3>
-<input id="searchQuick" placeholder="Ara..." oninput="renderQuickMeals()">
-<select id="filterCategory" onchange="renderQuickMeals()">
-  <option value="">Tümü</option>
-  <option value="Kahvaltı">Kahvaltı</option>
-  <option value="Öğle">Öğle</option>
-  <option value="Akşam">Akşam</option>
-  <option value="Ara Öğün">Ara Öğün</option>
-</select>
-<label><input type="checkbox" id="showFav" onchange="renderQuickMeals()"> Sadece Favori</label>
-<div id="quickContainer"></div>
+<h3>Tek Öğün Girişi</h3>
+<div>
+  <label>Yemek Adı</label>
+  <input id="mealName" placeholder="Örn: Tavuk + Pirinç">
+</div>
+<div>
+  <label>Gram (100g baz)</label>
+  <input type="number" id="mealGram" value="100">
+</div>
+<div>
+  <label>Kalori (100g)</label>
+  <input type="number" id="mealCal" value="200">
+</div>
+<div>
+  <label>Protein (100g)</label>
+  <input type="number" id="mealProt" value="16">
+</div>
+<div>
+  <label>Karbonhidrat (100g)</label>
+  <input type="number" id="mealCarb" value="20">
+</div>
+<div>
+  <label>Yağ (100g)</label>
+  <input type="number" id="mealFat" value="4">
+</div>
+<div>
+  <label>Porsiyon</label>
+  <select id="mealPortion">
+    <option value="0.25">0.25x</option>
+    <option value="0.5">0.5x</option>
+    <option value="1" selected>1x</option>
+    <option value="1.5">1.5x</option>
+    <option value="2">2x</option>
+  </select>
+</div>
+<button onclick="addMeal()">➕ Ekle</button>
+<div id="miniBars"></div>
 </div>
 
 <div class="card">
 <h3>Toplam</h3>
-<div id="categoryTotals"></div>
 <p id="totals" class="total"></p>
 </div>
 
@@ -59,50 +80,27 @@ canvas{max-width:100%;height:250px !important;}
 </div>
 
 <script>
-// --- Genel ---
 let todayDate = new Date().toISOString().split('T')[0];
 document.getElementById("today").innerText = "Bugün: " + todayDate;
 let currentDay = todayDate;
 let data = JSON.parse(localStorage.getItem("data")) || {};
 if(!data[currentDay]) data[currentDay]=[];
-
-let goal = 1800; // kalori hedefi
-
-let quickMeals=[
-  {name:"Tavuk + Pirinç",cal:200,protein:16,carb:20,fat:4,favorite:false,category:"Öğle",note:"",portion:1,gram:100},
-  {name:"Ton Balığı Salata",cal:175,protein:17.5,carb:5,fat:7.5,favorite:true,category:"Öğle",note:"",portion:1,gram:100},
-  {name:"Yumurta + Lor",cal:150,protein:12.5,carb:2.5,fat:7.5,favorite:false,category:"Kahvaltı",note:"",portion:1,gram:100},
-  {name:"Lor Peynirli Sandviç",cal:200,protein:15,carb:17.5,fat:6,favorite:false,category:"Kahvaltı",note:"",portion:1,gram:100},
-  {name:"Badem + Yoğurt",cal:125,protein:7.5,carb:5,fat:9,favorite:false,category:"Ara Öğün",note:"",portion:1,gram:100},
-];
+let goal = 1800;
 
 function save(){ localStorage.setItem("data",JSON.stringify(data)); }
 
 function updateTotals(){
   if(!data[currentDay]) data[currentDay]=[];
   let totalCal=0,totalProt=0,totalCarb=0,totalFat=0;
-  let categoryObj = {};
   data[currentDay].forEach(item=>{
     totalCal+=item.cal;
     totalProt+=item.protein;
     totalCarb+=item.carb;
     totalFat+=item.fat;
-    if(!categoryObj[item.category]) categoryObj[item.category]={cal:0,protein:0,carb:0,fat:0};
-    categoryObj[item.category].cal+=item.cal;
-    categoryObj[item.category].protein+=item.protein;
-    categoryObj[item.category].carb+=item.carb;
-    categoryObj[item.category].fat+=item.fat;
   });
 
-  let catHTML="";
-  for(let cat in categoryObj){
-    let c=categoryObj[cat];
-    catHTML+=`<b>${cat}</b> - Kalori:${c.cal.toFixed(1)} | Protein:${c.protein.toFixed(1)} | Karb:${c.carb.toFixed(1)} | Yağ:${c.fat.toFixed(1)}<br>`;
-  }
-  document.getElementById("categoryTotals").innerHTML=catHTML;
-
   let totalElem = document.getElementById("totals");
-  totalElem.innerText = `Toplam: Kalori: ${totalCal.toFixed(1)} kcal | Protein: ${totalProt.toFixed(1)} g | Karbonhidrat: ${totalCarb.toFixed(1)} g | Yağ: ${totalFat.toFixed(1)} g`;
+  totalElem.innerText = `Kalori: ${totalCal.toFixed(1)} kcal | Protein: ${totalProt.toFixed(1)} g | Karbonhidrat: ${totalCarb.toFixed(1)} g | Yağ: ${totalFat.toFixed(1)} g`;
 
   if(totalCal<goal) totalElem.className="total green";
   else if(totalCal>goal) totalElem.className="total red";
@@ -128,69 +126,31 @@ function updateTotals(){
   window.weekChart=new Chart(wCtx,{type:'line',data:{labels:weekLabels,datasets:[{label:'Haftalık Kalori',data:weekData,borderColor:'#0a84ff',backgroundColor:'rgba(10,132,255,0.2)',fill:true}]},options:{responsive:true}});
 }
 
-// --- Quick Meals ---
-function renderQuickMeals(){
-  let container=document.getElementById("quickContainer");
-  container.innerHTML="";
-  let filter=document.getElementById("searchQuick").value.toLowerCase();
-  let showFav=document.getElementById("showFav").checked;
-  let categoryFilter=document.getElementById("filterCategory").value;
-  quickMeals.slice().sort((a,b)=>b.favorite-a.favorite).forEach((m,i)=>{
-    if(filter && !m.name.toLowerCase().includes(filter)) return;
-    if(showFav && !m.favorite) return;
-    if(categoryFilter && m.category!==categoryFilter) return;
-    let div=document.createElement("div");
-    div.className="draggable";
-    let gramFactor = m.gram/100;
-    div.innerHTML=`
-      <span class="favorite ${m.favorite?'favorite':''}" onclick="quickMeals[${i}].favorite=!quickMeals[${i}].favorite; renderQuickMeals()">★</span>
-      <div><b>Ad:</b> <input value="${m.name}" onchange="quickMeals[${i}].name=this.value"></div>
-      <div><b>Gram (100g baz):</b> <input type="number" value="${m.gram}" onchange="quickMeals[${i}].gram=+this.value; renderQuickMeals();"></div>
-      <div class="mini-bar" style="background:linear-gradient(to right,#0a84ff ${m.cal*gramFactor}%,#ddd 0)"></div>
-      <div class="mini-bar" style="background:linear-gradient(to right,#34c759 ${m.protein*gramFactor}%,#ddd 0)"></div>
-      <div class="mini-bar" style="background:linear-gradient(to right,#ff9500 ${m.carb*gramFactor}%,#ddd 0)"></div>
-      <div class="mini-bar" style="background:linear-gradient(to right,#ff3b30 ${m.fat*gramFactor}%,#ddd 0)"></div>
-      <div><b>Porsiyon:</b>
-        <select onchange="quickMeals[${i}].portion=+this.value">
-          <option value="0.25">0.25x</option>
-          <option value="0.5">0.5x</option>
-          <option value="1" selected>1x</option>
-          <option value="1.5">1.5x</option>
-          <option value="2">2x</option>
-        </select>
-      </div>
-      <div><b>Not:</b> <input value="${m.note}" onchange="quickMeals[${i}].note=this.value"></div>
-      <div><b>Kategori:</b>
-        <select onchange="quickMeals[${i}].category=this.value">
-          <option value="Kahvaltı" ${m.category==='Kahvaltı'?'selected':''}>Kahvaltı</option>
-          <option value="Öğle" ${m.category==='Öğle'?'selected':''}>Öğle</option>
-          <option value="Akşam" ${m.category==='Akşam'?'selected':''}>Akşam</option>
-          <option value="Ara Öğün" ${m.category==='Ara Öğün'?'selected':''}>Ara Öğün</option>
-        </select>
-      </div>
-      <button onclick="quickAdd(${i})">➕ Ekle</button>
-    `;
-    container.appendChild(div);
-  });
+function addMeal(){
+  let name=document.getElementById("mealName").value||"Öğün";
+  let gram=+document.getElementById("mealGram").value||100;
+  let cal=+document.getElementById("mealCal").value||0;
+  let protein=+document.getElementById("mealProt").value||0;
+  let carb=+document.getElementById("mealCarb").value||0;
+  let fat=+document.getElementById("mealFat").value||0;
+  let portion=+document.getElementById("mealPortion").value||1;
+  let factor=gram/100*portion;
+  data[currentDay].push({name,cal:cal*factor,protein:protein*factor,carb:carb*factor,fat:fat*factor});
+  save();
+  updateTotals();
+  renderMiniBars(cal*factor,protein*factor,carb*factor,fat*factor);
 }
 
-function quickAdd(i){
-  let m=quickMeals[i];
-  let gramFactor = m.gram/100;
-  let p=m.portion||1;
-  data[currentDay].push({
-    name:m.name,
-    cal:m.cal*gramFactor*p,
-    protein:m.protein*gramFactor*p,
-    carb:m.carb*gramFactor*p,
-    fat:m.fat*gramFactor*p,
-    category:m.category,
-    note:m.note
-  });
-  save(); updateTotals(); renderQuickMeals();
+function renderMiniBars(c,p,carb,f){
+  let container=document.getElementById("miniBars");
+  container.innerHTML=`
+    <div class="mini-bar" style="background:linear-gradient(to right,#0a84ff ${c}%,#ddd 0)">Kalori ${c.toFixed(1)}</div>
+    <div class="mini-bar" style="background:linear-gradient(to right,#34c759 ${p}%,#ddd 0)">Protein ${p.toFixed(1)}</div>
+    <div class="mini-bar" style="background:linear-gradient(to right,#ff9500 ${carb}%,#ddd 0)">Karb ${carb.toFixed(1)}</div>
+    <div class="mini-bar" style="background:linear-gradient(to right,#ff3b30 ${f}%,#ddd 0)">Yağ ${f.toFixed(1)}</div>
+  `;
 }
 
-renderQuickMeals();
 updateTotals();
 </script>
 </body>
