@@ -37,7 +37,7 @@ button:hover{opacity:0.85;}
 <div class="card">
 <h3>Öğün Ekle</h3>
 <div class="relative">
-<input id="mealName" placeholder="Örn: Tavuk + Pirinç" oninput="showSuggestions()">
+<input id="mealName" placeholder="Örn: Tavuk + Pirinç" oninput="showSuggestions(); hideSuggestion();">
 <div id="suggestions" class="suggestions"></div>
 </div>
 <input type="number" id="mealGram" value="100" placeholder="Gram">
@@ -113,7 +113,7 @@ mealsDB.concat(favorites).forEach(m=>{
 if(m.name.toLowerCase().includes(input)){
 let div=document.createElement("div");
 div.innerText=m.name;
-div.onclick=()=>{document.getElementById("mealName").value=m.name;suggestions.innerHTML="";};
+div.onclick=()=>{document.getElementById("mealName").value=m.name;suggestions.innerHTML=""; hideSuggestion();};
 suggestions.appendChild(div);
 }});
 }
@@ -153,6 +153,7 @@ if(!favorites.find(f=>f.name===name)) favorites.push({name,cal,protein,carb,fat}
 saveFavorites();
 renderFavorites();
 updateFavoriteAnalysis();
+hideSuggestion();
 }
 
 function renderFavorites(){
