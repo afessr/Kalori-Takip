@@ -144,6 +144,7 @@ canvas { width: 100% !important; }
 background: var(–card2); border: 1px solid var(–green);
 border-radius: 10px; margin-top: 4px; overflow: hidden;
 max-height: 220px; overflow-y: auto; display: none;
+position: relative; z-index: 50;
 }
 .search-item {
 padding: 10px 14px; cursor: pointer; border-bottom: 1px solid var(–border);
@@ -192,21 +193,21 @@ svg.ring { transform: rotate(-90deg); }
 display: inline-block; padding: 2px 8px; border-radius: 20px;
 font-size: 10px; font-weight: 700; letter-spacing: 0.5px;
 }
-.badge-green { background: rgba(0,230,118,0.15); color: var(–green); }
-.badge-red   { background: rgba(255,23,68,0.15);  color: var(–red); }
-.badge-yellow{ background: rgba(255,214,0,0.15);  color: var(–yellow); }
-
+.badge-green  { background: rgba(0,230,118,0.15); color: var(–green); }
+.badge-red    { background: rgba(255,23,68,0.15);  color: var(–red); }
+.badge-yellow { background: rgba(255,214,0,0.15);  color: var(–yellow); }
 </style>
+
 </head>
 <body>
 
 <div class="tabs">
-  <div class="tab active" onclick="showTab('home',event)">🏠 Ana</div>
-  <div class="tab" onclick="showTab('stats',event)">📊 İstatistik</div>
-  <div class="tab" onclick="showTab('fav',event)">⭐ Favori</div>
-  <div class="tab" onclick="showTab('history',event)">📅 Geçmiş</div>
-  <div class="tab" onclick="showTab('goals',event)">🎯 Hedef</div>
-  <div class="tab" onclick="showTab('mydb',event)">📚 DB</div>
+  <div class="tab active" data-tab="home">🏠 Ana</div>
+  <div class="tab" data-tab="stats">📊 İstatistik</div>
+  <div class="tab" data-tab="fav">⭐ Favori</div>
+  <div class="tab" data-tab="history">📅 Geçmiş</div>
+  <div class="tab" data-tab="goals">🎯 Hedef</div>
+  <div class="tab" data-tab="mydb">📚 DB</div>
 </div>
 
 <div class="container">
@@ -217,14 +218,13 @@ font-size: 10px; font-weight: 700; letter-spacing: 0.5px;
     <div class="section-title">Yemek Ekle</div>
 
 ```
-<!-- Yemek veritabanı arama -->
 <div class="search-wrap">
   <span class="search-icon">🔍</span>
   <input type="text" id="dbSearch" placeholder="Veritabanında ara..." oninput="searchFoodDB()" autocomplete="off">
   <div class="search-results" id="searchResults"></div>
 </div>
 
-<input type="text"   id="food"    placeholder="Yemek adı">
+<input type="text" id="food" placeholder="Yemek adı">
 <div style="display:flex;gap:6px">
   <input type="number" id="grams"   placeholder="Gram" style="flex:1">
   <input type="number" id="cal"     placeholder="Kalori" style="flex:1">
@@ -250,7 +250,6 @@ font-size: 10px; font-weight: 700; letter-spacing: 0.5px;
 <div id="total"></div>
 <div class="progress"><div class="bar" id="barCal"></div></div>
 
-<!-- Makro Halkalar -->
 <div class="macro-rings" id="macroRings"></div>
 
 <div class="section-title">Bugünkü Öğünler</div>
@@ -299,7 +298,7 @@ font-size: 10px; font-weight: 700; letter-spacing: 0.5px;
 ```
 <div class="goal-input-row">
   <label>🔥 Kalori</label>
-  <input type="number" id="goalCal"     placeholder="kcal" style="flex:1">
+  <input type="number" id="goalCal" placeholder="kcal" style="flex:1">
 </div>
 <div class="goal-input-row">
   <label>💪 Protein</label>
@@ -307,19 +306,19 @@ font-size: 10px; font-weight: 700; letter-spacing: 0.5px;
 </div>
 <div class="goal-input-row">
   <label>🌾 Karbonhidrat</label>
-  <input type="number" id="goalCarb"    placeholder="gram" style="flex:1">
+  <input type="number" id="goalCarb" placeholder="gram" style="flex:1">
 </div>
 <div class="goal-input-row">
   <label>🥑 Yağ</label>
-  <input type="number" id="goalFat"     placeholder="gram" style="flex:1">
+  <input type="number" id="goalFat" placeholder="gram" style="flex:1">
 </div>
 <div class="goal-input-row">
   <label>⚖️ Hedef Kilo</label>
-  <input type="number" id="goalWeight"  placeholder="kg"   style="flex:1">
+  <input type="number" id="goalWeight" placeholder="kg" style="flex:1">
 </div>
 <div class="goal-input-row">
   <label>📏 Mevcut Kilo</label>
-  <input type="number" id="curWeight"   placeholder="kg"   style="flex:1">
+  <input type="number" id="curWeight" placeholder="kg" style="flex:1">
 </div>
 
 <button class="btn-green btn-full" onclick="saveGoals()">💾 Hedefleri Kaydet</button>
@@ -345,8 +344,6 @@ font-size: 10px; font-weight: 700; letter-spacing: 0.5px;
 
 <div id="toast"></div>
 
-<!-- Chart.js CDN -->
-
 <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js"></script>
 
 <script>
@@ -354,95 +351,92 @@ font-size: 10px; font-weight: 700; letter-spacing: 0.5px;
 // YEMEK VERİTABANI (100g başına değerler)
 // ═══════════════════════════════════════════════════════════════
 const BUILTIN_FOOD_DB = [
-  // 🇹🇷 ANA YEMEKLER
-  { name:"İskender Kebap", cal:245, protein:18, carb:14, fat:13, cat:"🥩 Et" },
-  { name:"Adana Kebap", cal:270, protein:20, carb:2, fat:20, cat:"🥩 Et" },
-  { name:"Urfa Kebap", cal:260, protein:19, carb:2, fat:19, cat:"🥩 Et" },
-  { name:"Şiş Kebap (kuzu)", cal:215, protein:22, carb:0, fat:14, cat:"🥩 Et" },
-  { name:"Tavuk Şiş", cal:165, protein:28, carb:0, fat:5, cat:"🍗 Tavuk" },
-  { name:"Tavuk Döner", cal:210, protein:22, carb:5, fat:11, cat:"🍗 Tavuk" },
-  { name:"Et Döner", cal:250, protein:20, carb:4, fat:17, cat:"🥩 Et" },
-  { name:"Köfte (ızgara)", cal:245, protein:19, carb:8, fat:15, cat:"🥩 Et" },
-  { name:"İzmir Köfte", cal:230, protein:17, carb:10, fat:14, cat:"🥩 Et" },
-  { name:"Karnıyarık", cal:145, protein:8, carb:10, fat:8, cat:"🍆 Sebze" },
-  { name:"İmam Bayıldı", cal:120, protein:2, carb:12, fat:7, cat:"🍆 Sebze" },
-  { name:"Musakka", cal:160, protein:9, carb:11, fat:9, cat:"🍆 Sebze" },
-  { name:"Dolma (etli, yaprak)", cal:180, protein:8, carb:18, fat:8, cat:"🫑 Dolma" },
-  { name:"Dolma (zeytinyağlı)", cal:120, protein:3, carb:18, fat:4, cat:"🫑 Dolma" },
-  { name:"Sarma (etli)", cal:175, protein:7, carb:17, fat:8, cat:"🫑 Dolma" },
-  { name:"Biber Dolması", cal:155, protein:7, carb:16, fat:7, cat:"🫑 Dolma" },
-  { name:"Mantı", cal:250, protein:12, carb:30, fat:9, cat:"🥟 Hamur" },
-  { name:"Gözleme (peynirli)", cal:230, protein:9, carb:28, fat:9, cat:"🥟 Hamur" },
-  { name:"Gözleme (kıymalı)", cal:245, protein:12, carb:26, fat:10, cat:"🥟 Hamur" },
-  { name:"Lahmacun", cal:205, protein:10, carb:28, fat:6, cat:"🥟 Hamur" },
-  { name:"Pide (kaşarlı)", cal:255, protein:10, carb:32, fat:10, cat:"🥟 Hamur" },
-  { name:"Pide (kıymalı)", cal:270, protein:13, carb:30, fat:11, cat:"🥟 Hamur" },
-  { name:"Börek (su böreği)", cal:280, protein:11, carb:24, fat:16, cat:"🥟 Hamur" },
-  { name:"Börek (sigara, peynirli)", cal:300, protein:10, carb:26, fat:18, cat:"🥟 Hamur" },
-  { name:"Mercimek Çorbası", cal:55, protein:4, carb:8, fat:1, cat:"🍲 Çorba" },
-  { name:"Ezogelin Çorbası", cal:65, protein:4, carb:10, fat:1.5, cat:"🍲 Çorba" },
-  { name:"Domates Çorbası", cal:45, protein:1.5, carb:7, fat:1, cat:"🍲 Çorba" },
-  { name:"Toyga Çorbası", cal:70, protein:4, carb:9, fat:2, cat:"🍲 Çorba" },
-  { name:"İşkembe Çorbası", cal:60, protein:5, carb:4, fat:2.5, cat:"🍲 Çorba" },
-  { name:"Tarhana Çorbası", cal:75, protein:3, carb:12, fat:1.5, cat:"🍲 Çorba" },
-  { name:"Pilav (pirinç)", cal:130, protein:2.7, carb:28, fat:0.5, cat:"🍚 Pilav" },
-  { name:"Bulgur Pilavı", cal:115, protein:4, carb:22, fat:2, cat:"🍚 Pilav" },
-  { name:"Nohutlu Pilav", cal:150, protein:5, carb:27, fat:2.5, cat:"🍚 Pilav" },
-  { name:"İç Pilav", cal:160, protein:4, carb:24, fat:5, cat:"🍚 Pilav" },
-  { name:"Etli Fasulye", cal:120, protein:7, carb:12, fat:4, cat:"🫘 Baklagil" },
-  { name:"Kuru Fasulye", cal:105, protein:6.5, carb:14, fat:2, cat:"🫘 Baklagil" },
-  { name:"Nohut Yemeği", cal:110, protein:6, carb:16, fat:2.5, cat:"🫘 Baklagil" },
-  { name:"Mercimek Yemeği", cal:100, protein:6, carb:15, fat:1.5, cat:"🫘 Baklagil" },
-  { name:"Zeytinyağlı Taze Fasulye", cal:75, protein:2, carb:9, fat:3.5, cat:"🫘 Baklagil" },
-  { name:"Zeytinyağlı Enginar", cal:85, protein:2, carb:10, fat:4, cat:"🍆 Sebze" },
-  { name:"Zeytinyağlı Kereviz", cal:70, protein:1.5, carb:9, fat:3.5, cat:"🍆 Sebze" },
-  { name:"Patlıcan Kebabı", cal:175, protein:9, carb:9, fat:10, cat:"🍆 Sebze" },
-  { name:"Türlü", cal:90, protein:3, carb:11, fat:4, cat:"🍆 Sebze" },
-  { name:"Ispanak Yemeği", cal:80, protein:3.5, carb:6, fat:4, cat:"🍆 Sebze" },
-  { name:"Pırasa Yemeği", cal:85, protein:2, carb:10, fat:4, cat:"🍆 Sebze" },
-  { name:"Kabak Yemeği", cal:70, protein:2, carb:9, fat:3, cat:"🍆 Sebze" },
-  { name:"Balık (levrek ızgara)", cal:124, protein:24, carb:0, fat:3, cat:"🐟 Balık" },
-  { name:"Balık (çupra ızgara)", cal:128, protein:23, carb:0, fat:4, cat:"🐟 Balık" },
-  { name:"Hamsi (tava)", cal:195, protein:18, carb:5, fat:11, cat:"🐟 Balık" },
-  { name:"Uskumru (fırın)", cal:180, protein:19, carb:0, fat:11, cat:"🐟 Balık" },
-  // 🥗 KAHVALTILIKLAR
-  { name:"Menemen", cal:120, protein:7, carb:5, fat:8, cat:"🍳 Kahvaltı" },
-  { name:"Yumurta (sahanda)", cal:155, protein:11, carb:1, fat:12, cat:"🍳 Kahvaltı" },
-  { name:"Yumurta (haşlanmış)", cal:155, protein:13, carb:1, fat:11, cat:"🍳 Kahvaltı" },
-  { name:"Beyaz Peynir", cat:"🧀 Peynir", cal:265, protein:14, carb:3.5, fat:21 },
-  { name:"Kaşar Peyniri", cat:"🧀 Peynir", cal:393, protein:25, carb:1.3, fat:32 },
-  { name:"Lor Peyniri", cat:"🧀 Peynir", cal:95, protein:9, carb:3, fat:5 },
-  { name:"Zeytin (siyah)", cal:115, protein:0.8, carb:6, fat:10, cat:"🫒 Kahvaltı" },
-  { name:"Zeytin (yeşil)", cal:145, protein:1, carb:4, fat:15, cat:"🫒 Kahvaltı" },
-  { name:"Bal", cal:304, protein:0.3, carb:82, fat:0, cat:"🍯 Kahvaltı" },
-  { name:"Kaymak", cal:338, protein:2.5, carb:3, fat:35, cat:"🥛 Kahvaltı" },
-  { name:"Sucuk", cal:370, protein:18, carb:2, fat:32, cat:"🌭 Kahvaltı" },
-  { name:"Pastırma", cal:180, protein:22, carb:1, fat:10, cat:"🥩 Kahvaltı" },
-  { name:"Simit", cal:275, protein:9, carb:52, fat:4, cat:"🥯 Ekmek" },
-  { name:"Poğaça (sade)", cal:310, protein:7, carb:38, fat:14, cat:"🥯 Ekmek" },
-  { name:"Ekmek (beyaz)", cal:265, protein:8, carb:50, fat:3, cat:"🥯 Ekmek" },
-  // 🍰 TATLILAR
-  { name:"Baklava", cal:430, protein:6, carb:48, fat:24, cat:"🍰 Tatlı" },
-  { name:"Künefe", cal:350, protein:8, carb:35, fat:20, cat:"🍰 Tatlı" },
-  { name:"Sütlaç", cal:130, protein:4, carb:22, fat:3, cat:"🍰 Tatlı" },
-  { name:"Kazandibi", cal:155, protein:5, carb:27, fat:3.5, cat:"🍰 Tatlı" },
-  { name:"Aşure", cal:145, protein:4, carb:29, fat:1.5, cat:"🍰 Tatlı" },
-  { name:"Helva (tahin)", cal:490, protein:10, carb:50, fat:28, cat:"🍰 Tatlı" },
-  { name:"Revani", cal:280, protein:5, carb:45, fat:9, cat:"🍰 Tatlı" },
-  { name:"Lokma", cal:340, protein:4, carb:52, fat:13, cat:"🍰 Tatlı" },
-  // 🥗 SALATALAR
-  { name:"Cacık", cal:45, protein:2, carb:4, fat:2.5, cat:"🥗 Salata" },
-  { name:"Çoban Salatası", cal:40, protein:1.5, carb:6, fat:1.5, cat:"🥗 Salata" },
-  { name:"Piyaz", cal:130, protein:5, carb:18, fat:4.5, cat:"🥗 Salata" },
-  { name:"Haydari", cal:95, protein:5, carb:3, fat:7, cat:"🥗 Salata" },
-  { name:"Tarator", cal:120, protein:4, carb:8, fat:8, cat:"🥗 Salata" },
-  // 🥤 İÇECEKLER & DİĞER
-  { name:"Ayran", cal:35, protein:2.5, carb:3.5, fat:1, cat:"🥤 İçecek" },
-  { name:"Türk Kahvesi (sade)", cal:2, protein:0.3, carb:0.3, fat:0, cat:"☕ İçecek" },
-  { name:"Çay (sade)", cal:1, protein:0, carb:0.2, fat:0, cat:"☕ İçecek" },
+  { name:"İskender Kebap",           cal:245, protein:18,  carb:14, fat:13,  cat:"🥩 Et" },
+  { name:"Adana Kebap",              cal:270, protein:20,  carb:2,  fat:20,  cat:"🥩 Et" },
+  { name:"Urfa Kebap",               cal:260, protein:19,  carb:2,  fat:19,  cat:"🥩 Et" },
+  { name:"Şiş Kebap (kuzu)",         cal:215, protein:22,  carb:0,  fat:14,  cat:"🥩 Et" },
+  { name:"Tavuk Şiş",                cal:165, protein:28,  carb:0,  fat:5,   cat:"🍗 Tavuk" },
+  { name:"Tavuk Döner",              cal:210, protein:22,  carb:5,  fat:11,  cat:"🍗 Tavuk" },
+  { name:"Et Döner",                 cal:250, protein:20,  carb:4,  fat:17,  cat:"🥩 Et" },
+  { name:"Köfte (ızgara)",           cal:245, protein:19,  carb:8,  fat:15,  cat:"🥩 Et" },
+  { name:"İzmir Köfte",              cal:230, protein:17,  carb:10, fat:14,  cat:"🥩 Et" },
+  { name:"Karnıyarık",               cal:145, protein:8,   carb:10, fat:8,   cat:"🍆 Sebze" },
+  { name:"İmam Bayıldı",             cal:120, protein:2,   carb:12, fat:7,   cat:"🍆 Sebze" },
+  { name:"Musakka",                  cal:160, protein:9,   carb:11, fat:9,   cat:"🍆 Sebze" },
+  { name:"Dolma (etli, yaprak)",     cal:180, protein:8,   carb:18, fat:8,   cat:"🫑 Dolma" },
+  { name:"Dolma (zeytinyağlı)",      cal:120, protein:3,   carb:18, fat:4,   cat:"🫑 Dolma" },
+  { name:"Sarma (etli)",             cal:175, protein:7,   carb:17, fat:8,   cat:"🫑 Dolma" },
+  { name:"Biber Dolması",            cal:155, protein:7,   carb:16, fat:7,   cat:"🫑 Dolma" },
+  { name:"Mantı",                    cal:250, protein:12,  carb:30, fat:9,   cat:"🥟 Hamur" },
+  { name:"Gözleme (peynirli)",       cal:230, protein:9,   carb:28, fat:9,   cat:"🥟 Hamur" },
+  { name:"Gözleme (kıymalı)",        cal:245, protein:12,  carb:26, fat:10,  cat:"🥟 Hamur" },
+  { name:"Lahmacun",                 cal:205, protein:10,  carb:28, fat:6,   cat:"🥟 Hamur" },
+  { name:"Pide (kaşarlı)",           cal:255, protein:10,  carb:32, fat:10,  cat:"🥟 Hamur" },
+  { name:"Pide (kıymalı)",           cal:270, protein:13,  carb:30, fat:11,  cat:"🥟 Hamur" },
+  { name:"Börek (su böreği)",        cal:280, protein:11,  carb:24, fat:16,  cat:"🥟 Hamur" },
+  { name:"Börek (sigara, peynirli)", cal:300, protein:10,  carb:26, fat:18,  cat:"🥟 Hamur" },
+  { name:"Mercimek Çorbası",         cal:55,  protein:4,   carb:8,  fat:1,   cat:"🍲 Çorba" },
+  { name:"Ezogelin Çorbası",         cal:65,  protein:4,   carb:10, fat:1.5, cat:"🍲 Çorba" },
+  { name:"Domates Çorbası",          cal:45,  protein:1.5, carb:7,  fat:1,   cat:"🍲 Çorba" },
+  { name:"Toyga Çorbası",            cal:70,  protein:4,   carb:9,  fat:2,   cat:"🍲 Çorba" },
+  { name:"İşkembe Çorbası",          cal:60,  protein:5,   carb:4,  fat:2.5, cat:"🍲 Çorba" },
+  { name:"Tarhana Çorbası",          cal:75,  protein:3,   carb:12, fat:1.5, cat:"🍲 Çorba" },
+  { name:"Pilav (pirinç)",           cal:130, protein:2.7, carb:28, fat:0.5, cat:"🍚 Pilav" },
+  { name:"Bulgur Pilavı",            cal:115, protein:4,   carb:22, fat:2,   cat:"🍚 Pilav" },
+  { name:"Nohutlu Pilav",            cal:150, protein:5,   carb:27, fat:2.5, cat:"🍚 Pilav" },
+  { name:"İç Pilav",                 cal:160, protein:4,   carb:24, fat:5,   cat:"🍚 Pilav" },
+  { name:"Etli Fasulye",             cal:120, protein:7,   carb:12, fat:4,   cat:"🫘 Baklagil" },
+  { name:"Kuru Fasulye",             cal:105, protein:6.5, carb:14, fat:2,   cat:"🫘 Baklagil" },
+  { name:"Nohut Yemeği",             cal:110, protein:6,   carb:16, fat:2.5, cat:"🫘 Baklagil" },
+  { name:"Mercimek Yemeği",          cal:100, protein:6,   carb:15, fat:1.5, cat:"🫘 Baklagil" },
+  { name:"Zeytinyağlı Taze Fasulye", cal:75,  protein:2,   carb:9,  fat:3.5, cat:"🫘 Baklagil" },
+  { name:"Zeytinyağlı Enginar",      cal:85,  protein:2,   carb:10, fat:4,   cat:"🍆 Sebze" },
+  { name:"Zeytinyağlı Kereviz",      cal:70,  protein:1.5, carb:9,  fat:3.5, cat:"🍆 Sebze" },
+  { name:"Patlıcan Kebabı",          cal:175, protein:9,   carb:9,  fat:10,  cat:"🍆 Sebze" },
+  { name:"Türlü",                    cal:90,  protein:3,   carb:11, fat:4,   cat:"🍆 Sebze" },
+  { name:"Ispanak Yemeği",           cal:80,  protein:3.5, carb:6,  fat:4,   cat:"🍆 Sebze" },
+  { name:"Pırasa Yemeği",            cal:85,  protein:2,   carb:10, fat:4,   cat:"🍆 Sebze" },
+  { name:"Kabak Yemeği",             cal:70,  protein:2,   carb:9,  fat:3,   cat:"🍆 Sebze" },
+  { name:"Balık (levrek ızgara)",    cal:124, protein:24,  carb:0,  fat:3,   cat:"🐟 Balık" },
+  { name:"Balık (çupra ızgara)",     cal:128, protein:23,  carb:0,  fat:4,   cat:"🐟 Balık" },
+  { name:"Hamsi (tava)",             cal:195, protein:18,  carb:5,  fat:11,  cat:"🐟 Balık" },
+  { name:"Uskumru (fırın)",          cal:180, protein:19,  carb:0,  fat:11,  cat:"🐟 Balık" },
+  { name:"Menemen",                  cal:120, protein:7,   carb:5,  fat:8,   cat:"🍳 Kahvaltı" },
+  { name:"Yumurta (sahanda)",        cal:155, protein:11,  carb:1,  fat:12,  cat:"🍳 Kahvaltı" },
+  { name:"Yumurta (haşlanmış)",      cal:155, protein:13,  carb:1,  fat:11,  cat:"🍳 Kahvaltı" },
+  { name:"Beyaz Peynir",             cal:265, protein:14,  carb:3.5,fat:21,  cat:"🧀 Peynir" },
+  { name:"Kaşar Peyniri",            cal:393, protein:25,  carb:1.3,fat:32,  cat:"🧀 Peynir" },
+  { name:"Lor Peyniri",              cal:95,  protein:9,   carb:3,  fat:5,   cat:"🧀 Peynir" },
+  { name:"Zeytin (siyah)",           cal:115, protein:0.8, carb:6,  fat:10,  cat:"🫒 Kahvaltı" },
+  { name:"Zeytin (yeşil)",           cal:145, protein:1,   carb:4,  fat:15,  cat:"🫒 Kahvaltı" },
+  { name:"Bal",                      cal:304, protein:0.3, carb:82, fat:0,   cat:"🍯 Kahvaltı" },
+  { name:"Kaymak",                   cal:338, protein:2.5, carb:3,  fat:35,  cat:"🥛 Kahvaltı" },
+  { name:"Sucuk",                    cal:370, protein:18,  carb:2,  fat:32,  cat:"🌭 Kahvaltı" },
+  { name:"Pastırma",                 cal:180, protein:22,  carb:1,  fat:10,  cat:"🥩 Kahvaltı" },
+  { name:"Simit",                    cal:275, protein:9,   carb:52, fat:4,   cat:"🥯 Ekmek" },
+  { name:"Poğaça (sade)",            cal:310, protein:7,   carb:38, fat:14,  cat:"🥯 Ekmek" },
+  { name:"Ekmek (beyaz)",            cal:265, protein:8,   carb:50, fat:3,   cat:"🥯 Ekmek" },
+  { name:"Baklava",                  cal:430, protein:6,   carb:48, fat:24,  cat:"🍰 Tatlı" },
+  { name:"Künefe",                   cal:350, protein:8,   carb:35, fat:20,  cat:"🍰 Tatlı" },
+  { name:"Sütlaç",                   cal:130, protein:4,   carb:22, fat:3,   cat:"🍰 Tatlı" },
+  { name:"Kazandibi",                cal:155, protein:5,   carb:27, fat:3.5, cat:"🍰 Tatlı" },
+  { name:"Aşure",                    cal:145, protein:4,   carb:29, fat:1.5, cat:"🍰 Tatlı" },
+  { name:"Helva (tahin)",            cal:490, protein:10,  carb:50, fat:28,  cat:"🍰 Tatlı" },
+  { name:"Revani",                   cal:280, protein:5,   carb:45, fat:9,   cat:"🍰 Tatlı" },
+  { name:"Lokma",                    cal:340, protein:4,   carb:52, fat:13,  cat:"🍰 Tatlı" },
+  { name:"Cacık",                    cal:45,  protein:2,   carb:4,  fat:2.5, cat:"🥗 Salata" },
+  { name:"Çoban Salatası",           cal:40,  protein:1.5, carb:6,  fat:1.5, cat:"🥗 Salata" },
+  { name:"Piyaz",                    cal:130, protein:5,   carb:18, fat:4.5, cat:"🥗 Salata" },
+  { name:"Haydari",                  cal:95,  protein:5,   carb:3,  fat:7,   cat:"🥗 Salata" },
+  { name:"Tarator",                  cal:120, protein:4,   carb:8,  fat:8,   cat:"🥗 Salata" },
+  { name:"Ayran",                    cal:35,  protein:2.5, carb:3.5,fat:1,   cat:"🥤 İçecek" },
+  { name:"Türk Kahvesi (sade)",      cal:2,   protein:0.3, carb:0.3,fat:0,   cat:"☕ İçecek" },
+  { name:"Çay (sade)",               cal:1,   protein:0,   carb:0.2,fat:0,   cat:"☕ İçecek" },
 ];
 
-// Kullanıcı kendi yemeklerini localStorage'a ekleyebilir
+// ═══════════════════════════════════════════════════════════════
+// CUSTOM DB (localStorage)
+// ═══════════════════════════════════════════════════════════════
 let CUSTOM_FOOD_DB = JSON.parse(localStorage.getItem("customFoodDB") || "[]");
 
 function getAllFoodDB() {
@@ -470,25 +464,29 @@ function openDB() {
     req.onerror   = e => reject(e.target.error);
   });
 }
+
 const dbOp = (store, mode, fn) => new Promise((res, rej) => {
-  const tx = db.transaction(store, mode);
+  const tx  = db.transaction(store, mode);
   const req = fn(tx.objectStore(store));
   req.onsuccess = () => res(req.result);
   req.onerror   = e => rej(e.target.error);
 });
-const dbGetAll = s => dbOp(s, "readonly",  st => st.getAll());
-const dbPut    = (s,o) => dbOp(s,"readwrite", st => st.put(o));
-const dbDelete = (s,id) => dbOp(s,"readwrite", st => st.delete(id));
-const dbClear  = s => dbOp(s, "readwrite", st => st.clear());
+const dbGetAll = s      => dbOp(s, "readonly",  st => st.getAll());
+const dbPut    = (s, o) => dbOp(s, "readwrite", st => st.put(o));
+const dbDelete = (s,id) => dbOp(s, "readwrite", st => st.delete(id));
+const dbClear  = s      => dbOp(s, "readwrite", st => st.clear());
 
 // ═══════════════════════════════════════════════════════════════
 // STATE
 // ═══════════════════════════════════════════════════════════════
-const today = new Date().toISOString().slice(0,10);
+const today = new Date().toISOString().slice(0, 10);
 let foods     = [];
 let favorites = [];
 let goals     = JSON.parse(localStorage.getItem("omadGoals") || '{"cal":1800,"protein":120,"carb":180,"fat":60,"weight":0,"curWeight":0}');
 let charts    = {};
+
+// Last selected DB food — used for gram-based auto-calc
+let _selectedDBFood = null;
 
 // ═══════════════════════════════════════════════════════════════
 // LOAD
@@ -501,22 +499,25 @@ async function loadData() {
 }
 
 // ═══════════════════════════════════════════════════════════════
-// TABS
+// TABS  — FIX: delegate via data-tab, no inline event arg needed
 // ═══════════════════════════════════════════════════════════════
-function showTab(tab, e) {
-  ["home","stats","fav","history","goals","mydb"].forEach(id =>
-    document.getElementById(id).style.display = "none"
-  );
-  document.getElementById(tab).style.display = "block";
-  document.querySelectorAll(".tab").forEach(t => t.classList.remove("active"));
-  e.target.classList.add("active");
+document.querySelectorAll(".tab").forEach(tab => {
+  tab.addEventListener("click", () => {
+    const name = tab.dataset.tab;
+    ["home","stats","fav","history","goals","mydb"].forEach(id =>
+      document.getElementById(id).style.display = "none"
+    );
+    document.getElementById(name).style.display = "block";
+    document.querySelectorAll(".tab").forEach(t => t.classList.remove("active"));
+    tab.classList.add("active");
 
-  if (tab === "stats")   renderStats();
-  if (tab === "history") renderHistory();
-  if (tab === "goals")   renderGoalProgress();
-  if (tab === "home")    renderHome();
-  if (tab === "mydb")    renderCustomDB();
-}
+    if (name === "stats")   renderStats();
+    if (name === "history") renderHistory();
+    if (name === "goals")   renderGoalProgress();
+    if (name === "home")    renderHome();
+    if (name === "mydb")    renderCustomDB();
+  });
+});
 
 // ═══════════════════════════════════════════════════════════════
 // FOOD DB SEARCH
@@ -526,23 +527,31 @@ function searchFoodDB() {
   const box = document.getElementById("searchResults");
   if (!q) { box.style.display = "none"; return; }
 
-  const all     = getAllFoodDB();
-  const results = all.filter(f => f.name.toLowerCase().includes(q)).slice(0, 10);
+  const results = getAllFoodDB()
+    .filter(f => f.name.toLowerCase().includes(q))
+    .slice(0, 10);
+
   if (!results.length) { box.style.display = "none"; return; }
 
+  // FIX: store results in closure array — no JSON serialisation in onclick
+  box._results = results;
   box.innerHTML = results.map((f, i) => {
     const isCustom = !!f._custom;
-    return `<div class="search-item" onclick="selectDBFood(${i}, ${JSON.stringify(results).replace(/"/g,'&quot;')})">
-      <div class="search-item-name">${f.cat ? f.cat + " " : ""}${f.name} ${isCustom ? '<span class="badge badge-yellow">Özel</span>' : ''}</div>
+    return `<div class="search-item" onclick="selectDBFood(${i})">
+      <div class="search-item-name">${f.cat ? f.cat + " " : ""}${f.name}${isCustom ? ' <span class="badge badge-yellow">Özel</span>' : ""}</div>
       <div class="search-item-cal">${f.cal} kcal / 100g &nbsp;·&nbsp; P:${f.protein}g C:${f.carb}g F:${f.fat}g</div>
     </div>`;
   }).join("");
   box.style.display = "block";
 }
 
-function selectDBFood(idx, resultsJson) {
-  const results = typeof resultsJson === "string" ? JSON.parse(resultsJson.replace(/&quot;/g,'"')) : resultsJson;
-  const f = results[idx];
+function selectDBFood(idx) {
+  const box = document.getElementById("searchResults");
+  const f   = box._results[idx];
+  if (!f) return;
+
+  _selectedDBFood = f; // keep reference for gram auto-calc
+
   document.getElementById("food").value    = f.name;
   document.getElementById("grams").value   = 100;
   document.getElementById("cal").value     = f.cal;
@@ -550,8 +559,34 @@ function selectDBFood(idx, resultsJson) {
   document.getElementById("carb").value    = f.carb;
   document.getElementById("fat").value     = f.fat;
   document.getElementById("dbSearch").value = "";
-  document.getElementById("searchResults").style.display = "none";
+  box.style.display = "none";
 }
+
+// ── Gram değişince makroları otomatik güncelle ──
+// FIX: use _selectedDBFood instead of searching by name (avoids mismatch)
+function autoCalcFromGrams() {
+  const g = +document.getElementById("grams").value;
+  if (!g) return;
+
+  // Try stored reference first, fall back to name match
+  const name  = document.getElementById("food").value.trim();
+  const entry = _selectedDBFood && _selectedDBFood.name === name
+    ? _selectedDBFood
+    : getAllFoodDB().find(f => f.name === name);
+
+  if (!entry) return;
+  const ratio = g / 100;
+  document.getElementById("cal").value     = Math.round(entry.cal     * ratio);
+  document.getElementById("protein").value = +(entry.protein * ratio).toFixed(1);
+  document.getElementById("carb").value    = +(entry.carb    * ratio).toFixed(1);
+  document.getElementById("fat").value     = +(entry.fat     * ratio).toFixed(1);
+}
+
+// Close search on outside click
+document.addEventListener("click", e => {
+  if (!e.target.closest(".search-wrap"))
+    document.getElementById("searchResults").style.display = "none";
+});
 
 // ── Özel yemek veritabanına ekle ──
 function addToCustomDB() {
@@ -561,14 +596,13 @@ function addToCustomDB() {
   const carb    = +document.getElementById("carb").value;
   const fat     = +document.getElementById("fat").value;
 
-  if (!name)  return alert("Önce yemek adı gir");
-  if (!cal)   return alert("Kalori bilgisi gerekli");
+  if (!name) return alert("Önce yemek adı gir");
+  if (!cal)  return alert("Kalori bilgisi gerekli");
 
-  // Zaten var mı?
   if (getAllFoodDB().some(f => f.name.toLowerCase() === name.toLowerCase()))
     return alert("Bu yemek zaten veritabanında var");
 
-  const entry = { name, cal, protein: protein||0, carb: carb||0, fat: fat||0, cat:"⭐ Özel", _custom: true };
+  const entry = { name, cal, protein: protein || 0, carb: carb || 0, fat: fat || 0, cat:"⭐ Özel", _custom: true };
   CUSTOM_FOOD_DB.push(entry);
   localStorage.setItem("customFoodDB", JSON.stringify(CUSTOM_FOOD_DB));
   toast("📚 Veritabanına eklendi");
@@ -599,45 +633,24 @@ function renderCustomDB() {
     </div>`).join("");
 }
 
-// Gram değişince makroları otomatik güncelle
-document.addEventListener("DOMContentLoaded", () => {
-  document.getElementById("grams").addEventListener("input", autoCalcFromGrams);
-});
-
-function autoCalcFromGrams() {
-  const name = document.getElementById("food").value.trim();
-  const g    = +document.getElementById("grams").value;
-  if (!g) return;
-  const entry = getAllFoodDB().find(f => f.name === name);
-  if (!entry) return;
-  const ratio = g / 100;
-  document.getElementById("cal").value     = Math.round(entry.cal     * ratio);
-  document.getElementById("protein").value = +(entry.protein * ratio).toFixed(1);
-  document.getElementById("carb").value    = +(entry.carb    * ratio).toFixed(1);
-  document.getElementById("fat").value     = +(entry.fat     * ratio).toFixed(1);
-}
-
-// Close search on outside click
-document.addEventListener("click", e => {
-  if (!e.target.closest(".search-wrap"))
-    document.getElementById("searchResults").style.display = "none";
-});
-
 // ═══════════════════════════════════════════════════════════════
 // ADD FOOD
 // ═══════════════════════════════════════════════════════════════
 async function addFood() {
+  const name  = document.getElementById("food").value.trim();
+  const grams = +document.getElementById("grams").value;
+  if (!name || !grams) return alert("Yemek adı ve gram zorunlu");
+
   const f = {
     id:      Date.now(),
     date:    today,
-    name:    document.getElementById("food").value.trim(),
-    grams:   +document.getElementById("grams").value,
-    cal:     +document.getElementById("cal").value,
-    protein: +document.getElementById("protein").value,
-    carb:    +document.getElementById("carb").value,
-    fat:     +document.getElementById("fat").value
+    name,
+    grams,
+    cal:     +document.getElementById("cal").value     || 0,
+    protein: +document.getElementById("protein").value || 0,
+    carb:    +document.getElementById("carb").value    || 0,
+    fat:     +document.getElementById("fat").value     || 0
   };
-  if (!f.name || !f.grams) return alert("Eksik bilgi");
   await dbPut("foods", f);
   foods.push(f);
   clearForm();
@@ -656,6 +669,7 @@ function clearForm() {
   ["food","grams","cal","protein","carb","fat"].forEach(id =>
     document.getElementById(id).value = ""
   );
+  _selectedDBFood = null; // FIX: reset reference on clear
 }
 
 // ═══════════════════════════════════════════════════════════════
@@ -663,9 +677,10 @@ function clearForm() {
 // ═══════════════════════════════════════════════════════════════
 async function saveToFavorites() {
   const name = document.getElementById("food").value.trim();
-  if (!name) return alert("Yemek gir");
+  if (!name) return alert("Yemek adı gir");
   const f = {
-    id: Date.now(), name,
+    id:      Date.now(),
+    name,
     grams:   +document.getElementById("grams").value   || 100,
     cal:     +document.getElementById("cal").value     || 0,
     protein: +document.getElementById("protein").value || 0,
@@ -684,25 +699,29 @@ async function deleteFavorite(id) {
   renderFav();
 }
 
-function selectFav(f) {
+// FIX: use dataset instead of inline JSON to avoid HTML-escaping issues
+function selectFav(id) {
+  const f = favorites.find(x => x.id === id);
+  if (!f) return;
   document.getElementById("food").value    = f.name;
   document.getElementById("grams").value   = f.grams;
   document.getElementById("cal").value     = f.cal;
   document.getElementById("protein").value = f.protein;
   document.getElementById("carb").value    = f.carb;
   document.getElementById("fat").value     = f.fat;
-  showTab("home", { target: document.querySelectorAll(".tab")[0] });
+  // Switch to home tab
+  document.querySelector('[data-tab="home"]').click();
 }
 
 // ═══════════════════════════════════════════════════════════════
 // GOALS
 // ═══════════════════════════════════════════════════════════════
 function loadGoalInputs() {
-  document.getElementById("goalCal").value     = goals.cal     || "";
-  document.getElementById("goalProtein").value = goals.protein || "";
-  document.getElementById("goalCarb").value    = goals.carb    || "";
-  document.getElementById("goalFat").value     = goals.fat     || "";
-  document.getElementById("goalWeight").value  = goals.weight  || "";
+  document.getElementById("goalCal").value     = goals.cal       || "";
+  document.getElementById("goalProtein").value = goals.protein   || "";
+  document.getElementById("goalCarb").value    = goals.carb      || "";
+  document.getElementById("goalFat").value     = goals.fat       || "";
+  document.getElementById("goalWeight").value  = goals.weight    || "";
   document.getElementById("curWeight").value   = goals.curWeight || "";
 }
 
@@ -724,15 +743,15 @@ function renderGoalProgress() {
   loadGoalInputs();
   const totals = calcTotals(foods);
   const el = document.getElementById("goalProgress");
+
   const items = [
-    { label:"🔥 Kalori",      cur: totals.cal,     goal: goals.cal,     unit:"kcal", color:"#00e676" },
-    { label:"💪 Protein",     cur: totals.protein, goal: goals.protein, unit:"g",    color:"#2979ff" },
-    { label:"🌾 Karbonhidrat",cur: totals.carb,    goal: goals.carb,    unit:"g",    color:"#ffd600" },
-    { label:"🥑 Yağ",         cur: totals.fat,     goal: goals.fat,     unit:"g",    color:"#ff6d00" },
+    { label:"🔥 Kalori",       cur: totals.cal,     goal: goals.cal,     unit:"kcal", color:"#00e676" },
+    { label:"💪 Protein",      cur: totals.protein, goal: goals.protein, unit:"g",    color:"#2979ff" },
+    { label:"🌾 Karbonhidrat", cur: totals.carb,    goal: goals.carb,    unit:"g",    color:"#ffd600" },
+    { label:"🥑 Yağ",          cur: totals.fat,     goal: goals.fat,     unit:"g",    color:"#ff6d00" },
   ];
 
   el.innerHTML = items.map(it => {
-    const pct = goals[it.unit === "kcal" ? "cal" : it.label.includes("Protein") ? "protein" : it.label.includes("Karb") ? "carb" : "fat"];
     const rawPct = it.goal ? Math.min((it.cur / it.goal) * 100, 100) : 0;
     const status = rawPct >= 100 ? "✅" : rawPct >= 70 ? "🟡" : "⬜";
     return `
@@ -747,17 +766,16 @@ function renderGoalProgress() {
       </div>`;
   }).join("");
 
-  // Kilo bilgisi
   if (goals.weight && goals.curWeight) {
     const diff = (goals.curWeight - goals.weight).toFixed(1);
-    const sign = diff > 0 ? "fazla" : "eksik";
+    const label = diff > 0 ? "fazla" : "eksik";
     el.innerHTML += `
       <div class="card" style="margin-top:10px">
         <div class="card-info">
           <div class="card-name">⚖️ Kilo Durumu</div>
           <div class="card-meta">${goals.curWeight} kg mevcut → ${goals.weight} kg hedef</div>
         </div>
-        <span class="badge ${diff > 0 ? 'badge-yellow' : 'badge-green'}">${Math.abs(diff)} kg ${sign}</span>
+        <span class="badge ${diff > 0 ? 'badge-yellow' : 'badge-green'}">${Math.abs(diff)} kg ${label}</span>
       </div>`;
   }
 }
@@ -767,10 +785,10 @@ function renderGoalProgress() {
 // ═══════════════════════════════════════════════════════════════
 function calcTotals(arr) {
   return arr.reduce((t, f) => ({
-    cal:     t.cal     + (f.cal     || 0),
-    protein: t.protein + (f.protein || 0),
-    carb:    t.carb    + (f.carb    || 0),
-    fat:     t.fat     + (f.fat     || 0)
+    cal:     Math.round(t.cal     + (f.cal     || 0)),
+    protein: +(t.protein + (f.protein || 0)).toFixed(1),
+    carb:    +(t.carb    + (f.carb    || 0)).toFixed(1),
+    fat:     +(t.fat     + (f.fat     || 0)).toFixed(1),
   }), { cal:0, protein:0, carb:0, fat:0 });
 }
 
@@ -778,14 +796,15 @@ function renderHome() {
   const t   = calcTotals(foods);
   const pct = goals.cal ? Math.min((t.cal / goals.cal) * 100, 100) : 0;
 
-  // Total line
   const calBadge = t.cal >= goals.cal
     ? '<span class="badge badge-green">Hedefe Ulaştı</span>'
     : `<span class="badge badge-yellow">${goals.cal - t.cal} kcal kaldı</span>`;
 
   document.getElementById("total").innerHTML =
     `<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:4px">
-      <span style="font-family:'Space Mono',monospace;font-size:22px;font-weight:700;color:var(--green)">${t.cal} <span style="font-size:13px;color:var(--muted)">kcal</span></span>
+      <span style="font-family:'Space Mono',monospace;font-size:22px;font-weight:700;color:var(--green)">
+        ${t.cal} <span style="font-size:13px;color:var(--muted)">kcal</span>
+      </span>
       ${calBadge}
     </div>`;
 
@@ -793,38 +812,32 @@ function renderHome() {
   bar.style.width = pct + "%";
   bar.className   = "bar" + (pct >= 100 ? " over" : pct >= 80 ? " warn" : "");
 
-  // Macro rings
   renderMacroRings(t);
 
-  // Food list
   const el = document.getElementById("foodList");
   if (!foods.length) {
     el.innerHTML = '<div class="empty">Henüz öğün eklenmedi 🍽️</div>';
     return;
   }
-  el.innerHTML = "";
-  [...foods].reverse().forEach(f => {
-    const div = document.createElement("div");
-    div.className = "card";
-    div.innerHTML = `
+  el.innerHTML = [...foods].reverse().map(f => `
+    <div class="card">
       <div class="card-info">
         <div class="card-name">${f.name}</div>
         <div class="card-meta">${f.grams}g &nbsp;·&nbsp; ${f.cal} kcal &nbsp;·&nbsp; P:${f.protein}g C:${f.carb}g F:${f.fat}g</div>
       </div>
-      <button class="btn-red" onclick="deleteFood(${f.id})" style="padding:6px 10px;font-size:11px">❌</button>`;
-    el.appendChild(div);
-  });
+      <button class="btn-red" onclick="deleteFood(${f.id})" style="padding:6px 10px;font-size:11px">❌</button>
+    </div>`).join("");
 }
 
 function renderMacroRings(t) {
   const macros = [
-    { label:"Protein",     val:t.protein, goal:goals.protein, color:"#2979ff" },
-    { label:"Karbonhidrat",val:t.carb,    goal:goals.carb,    color:"#ffd600" },
-    { label:"Yağ",         val:t.fat,     goal:goals.fat,     color:"#ff6d00" },
+    { label:"Protein",      val:t.protein, goal:goals.protein, color:"#2979ff" },
+    { label:"Karbonhidrat", val:t.carb,    goal:goals.carb,    color:"#ffd600" },
+    { label:"Yağ",          val:t.fat,     goal:goals.fat,     color:"#ff6d00" },
   ];
   const r = 22, circ = 2 * Math.PI * r;
   document.getElementById("macroRings").innerHTML = macros.map(m => {
-    const pct = m.goal ? Math.min(m.val / m.goal, 1) : 0;
+    const pct    = m.goal ? Math.min(m.val / m.goal, 1) : 0;
     const offset = circ * (1 - pct);
     return `
       <div class="ring-wrap">
@@ -832,9 +845,8 @@ function renderMacroRings(t) {
           <circle class="ring-bg" cx="30" cy="30" r="${r}"/>
           <circle class="ring-fg" cx="30" cy="30" r="${r}"
             stroke="${m.color}"
-            stroke-dasharray="${circ}"
-            stroke-dashoffset="${offset}"
-            style="transition:stroke-dashoffset 0.5s ease"/>
+            stroke-dasharray="${circ.toFixed(2)}"
+            stroke-dashoffset="${offset.toFixed(2)}"/>
         </svg>
         <div class="ring-val">${m.val}g</div>
         <div class="ring-lbl">${m.label}</div>
@@ -848,34 +860,33 @@ function renderMacroRings(t) {
 function renderFav() {
   const el = document.getElementById("favList");
   if (!favorites.length) {
-    el.innerHTML = '<div class="empty">Favori yok ⭐</div>'; return;
+    el.innerHTML = '<div class="empty">Favori yok ⭐</div>';
+    return;
   }
-  el.innerHTML = "";
-  favorites.forEach(f => {
-    const div = document.createElement("div");
-    div.className = "card";
-    div.innerHTML = `
-      <div class="card-info" style="cursor:pointer" onclick='selectFav(${JSON.stringify(f)})'>
+  // FIX: use data-id + event delegation instead of JSON in onclick
+  el.innerHTML = favorites.map(f => `
+    <div class="card">
+      <div class="card-info" style="cursor:pointer" data-fav-id="${f.id}" onclick="selectFav(${f.id})">
         <div class="card-name">${f.name}</div>
         <div class="card-meta">${f.grams}g &nbsp;·&nbsp; ${f.cal} kcal</div>
       </div>
-      <button class="btn-red" onclick="deleteFavorite(${f.id})" style="padding:6px 10px;font-size:11px">❌</button>`;
-    el.appendChild(div);
-  });
+      <button class="btn-red" onclick="deleteFavorite(${f.id})" style="padding:6px 10px;font-size:11px">❌</button>
+    </div>`).join("");
 }
 
 // ═══════════════════════════════════════════════════════════════
 // RENDER HISTORY
 // ═══════════════════════════════════════════════════════════════
 async function renderHistory() {
-  const el = document.getElementById("historyList");
+  const el  = document.getElementById("historyList");
   el.innerHTML = "";
   const all = await dbGetAll("foods");
 
   let hasData = false;
   for (let i = 0; i < 30; i++) {
-    const d = new Date(); d.setDate(d.getDate() - i);
-    const key  = d.toISOString().slice(0,10);
+    const d   = new Date();
+    d.setDate(d.getDate() - i);
+    const key  = d.toISOString().slice(0, 10);
     const data = all.filter(f => f.date === key);
     if (!data.length) continue;
     hasData = true;
@@ -888,20 +899,19 @@ async function renderHistory() {
         ? '<span class="badge badge-yellow">Yakın</span>'
         : '<span class="badge badge-red">Düşük</span>';
 
-    const div = document.createElement("div");
-    div.className = "card hist-card";
-    div.innerHTML = `
-      <div class="card-info">
-        <div class="hist-date">${key} ${i===0?"(bugün)":""}</div>
-        <div class="hist-stats">${data.length} öğün &nbsp;·&nbsp; ${t.cal} kcal &nbsp;·&nbsp; P:${t.protein}g C:${t.carb}g F:${t.fat}g</div>
-        <div class="hist-bar-wrap">
-          <div class="progress" style="margin:4px 0">
-            <div class="bar" style="width:${pct}%"></div>
+    el.innerHTML += `
+      <div class="card hist-card">
+        <div class="card-info">
+          <div class="hist-date">${key}${i === 0 ? " (bugün)" : ""}</div>
+          <div class="hist-stats">${data.length} öğün &nbsp;·&nbsp; ${t.cal} kcal &nbsp;·&nbsp; P:${t.protein}g C:${t.carb}g F:${t.fat}g</div>
+          <div class="hist-bar-wrap">
+            <div class="progress" style="margin:4px 0">
+              <div class="bar" style="width:${pct}%"></div>
+            </div>
           </div>
         </div>
-      </div>
-      ${badge}`;
-    el.appendChild(div);
+        ${badge}
+      </div>`;
   }
   if (!hasData) el.innerHTML = '<div class="empty">Geçmiş veri yok 📅</div>';
 }
@@ -912,20 +922,18 @@ async function renderHistory() {
 async function renderStats() {
   const all = await dbGetAll("foods");
 
-  // Last 7 days data
   const days = [];
   for (let i = 6; i >= 0; i--) {
-    const d = new Date(); d.setDate(d.getDate() - i);
-    const key  = d.toISOString().slice(0,10);
+    const d   = new Date();
+    d.setDate(d.getDate() - i);
+    const key  = d.toISOString().slice(0, 10);
     const data = all.filter(f => f.date === key);
     const t    = calcTotals(data);
     days.push({ key, label: key.slice(5), ...t, count: data.length });
   }
 
-  // Kalori grafiği
-  renderLineChart("chartCal", days.map(d=>d.label), days.map(d=>d.cal), "Kalori (kcal)", "#00e676");
+  renderLineChart("chartCal",   days.map(d => d.label), days.map(d => d.cal), "Kalori (kcal)", "#00e676");
 
-  // Makro pasta (bugün)
   const todayData = days[days.length - 1];
   renderDonut("chartMacro",
     ["Protein","Karbonhidrat","Yağ"],
@@ -933,13 +941,12 @@ async function renderStats() {
     ["#2979ff","#ffd600","#ff6d00"]
   );
 
-  // Averages
   const activeDays = days.filter(d => d.count > 0);
   const avg = activeDays.length ? {
-    cal:     Math.round(activeDays.reduce((s,d)=>s+d.cal,0)     / activeDays.length),
-    protein: Math.round(activeDays.reduce((s,d)=>s+d.protein,0) / activeDays.length),
-    carb:    Math.round(activeDays.reduce((s,d)=>s+d.carb,0)    / activeDays.length),
-    fat:     Math.round(activeDays.reduce((s,d)=>s+d.fat,0)     / activeDays.length),
+    cal:     Math.round(activeDays.reduce((s,d) => s + d.cal,     0) / activeDays.length),
+    protein: Math.round(activeDays.reduce((s,d) => s + d.protein, 0) / activeDays.length),
+    carb:    Math.round(activeDays.reduce((s,d) => s + d.carb,    0) / activeDays.length),
+    fat:     Math.round(activeDays.reduce((s,d) => s + d.fat,     0) / activeDays.length),
   } : { cal:0, protein:0, carb:0, fat:0 };
 
   document.getElementById("avgStats").innerHTML = `
@@ -949,17 +956,22 @@ async function renderStats() {
     <div class="stat-box"><div class="stat-val" style="color:#ff6d00">${avg.fat}g</div><div class="stat-lbl">ORT. YAĞ</div><div class="stat-sub">g/gün</div></div>`;
 
   // Streak & records
-  const allDates = [...new Set(all.map(f=>f.date))].sort();
+  const allDates = [...new Set(all.map(f => f.date))].sort();
   let streak = 0, cur = 0;
   for (let i = 0; i < allDates.length; i++) {
-    if (i === 0) { cur = 1; continue; }
-    const prev = new Date(allDates[i-1]);
+    if (i === 0) { cur = 1; streak = 1; continue; }
+    const prev = new Date(allDates[i - 1]);
     const curr = new Date(allDates[i]);
     const diff = (curr - prev) / 86400000;
     cur = diff === 1 ? cur + 1 : 1;
     streak = Math.max(streak, cur);
   }
-  const maxCal = all.length ? Math.max(...[...new Set(all.map(f=>f.date))].map(d => calcTotals(all.filter(f=>f.date===d)).cal)) : 0;
+
+  // FIX: guard against empty array for Math.max
+  const uniqueDates = [...new Set(all.map(f => f.date))];
+  const maxCal = uniqueDates.length
+    ? Math.max(...uniqueDates.map(d => calcTotals(all.filter(f => f.date === d)).cal))
+    : 0;
   const totalDays = allDates.length;
 
   document.getElementById("streakStats").innerHTML = `
@@ -970,7 +982,7 @@ async function renderStats() {
 }
 
 function renderLineChart(canvasId, labels, data, label, color) {
-  if (charts[canvasId]) charts[canvasId].destroy();
+  if (charts[canvasId]) { charts[canvasId].destroy(); delete charts[canvasId]; }
   const ctx = document.getElementById(canvasId).getContext("2d");
   charts[canvasId] = new Chart(ctx, {
     type: "line",
@@ -992,15 +1004,15 @@ function renderLineChart(canvasId, labels, data, label, color) {
       plugins: { legend: { display: false } },
       scales: {
         x: { ticks: { color:"#888" }, grid: { color:"#2a2a2a" } },
-        y: { ticks: { color:"#888" }, grid: { color:"#2a2a2a" } }
+        y: { ticks: { color:"#888" }, grid: { color:"#2a2a2a" }, beginAtZero: true }
       }
     }
   });
 }
 
 function renderDonut(canvasId, labels, data, colors) {
-  if (charts[canvasId]) charts[canvasId].destroy();
-  const total = data.reduce((a,b)=>a+b,0);
+  if (charts[canvasId]) { charts[canvasId].destroy(); delete charts[canvasId]; }
+  const total = data.reduce((a, b) => a + b, 0);
   if (!total) return;
   const ctx = document.getElementById(canvasId).getContext("2d");
   charts[canvasId] = new Chart(ctx, {
@@ -1014,7 +1026,7 @@ function renderDonut(canvasId, labels, data, colors) {
       cutout: "65%",
       plugins: {
         legend: {
-          position:"bottom",
+          position: "bottom",
           labels: { color:"#aaa", font:{ size:12 }, padding:12 }
         }
       }
@@ -1028,24 +1040,35 @@ function renderDonut(canvasId, labels, data, colors) {
 async function exportBackup() {
   const allFoods = await dbGetAll("foods");
   const allFavs  = await dbGetAll("favorites");
-  const data = JSON.stringify({ foods: allFoods, favorites: allFavs, goals }, null, 2);
+  const data = JSON.stringify({ foods: allFoods, favorites: allFavs, goals, customFoodDB: CUSTOM_FOOD_DB }, null, 2);
   const blob = new Blob([data], { type:"application/json" });
   const url  = URL.createObjectURL(blob);
   const a = document.createElement("a");
-  a.href = url; a.download = `omad_yedek_${today}.json`; a.click();
+  a.href = url;
+  a.download = `omad_yedek_${today}.json`;
+  a.click();
   URL.revokeObjectURL(url);
   toast("💾 Yedek alındı");
 }
 
 async function importBackup(e) {
-  const file = e.target.files[0]; if (!file) return;
-  const text = await file.text();
-  let data; try { data = JSON.parse(text); } catch { return alert("Geçersiz dosya"); }
+  const file = e.target.files[0];
+  if (!file) return;
+  let data;
+  try { data = JSON.parse(await file.text()); }
+  catch { return alert("Geçersiz dosya"); }
   if (!confirm("Mevcut veriler silinip yedek yüklensin mi?")) return;
-  await dbClear("foods"); await dbClear("favorites");
+
+  await dbClear("foods");
+  await dbClear("favorites");
   for (const f of (data.foods     || [])) await dbPut("foods",     f);
   for (const f of (data.favorites || [])) await dbPut("favorites", f);
   if (data.goals) { goals = data.goals; localStorage.setItem("omadGoals", JSON.stringify(goals)); }
+  // FIX: also restore custom DB from backup
+  if (data.customFoodDB) {
+    CUSTOM_FOOD_DB = data.customFoodDB;
+    localStorage.setItem("customFoodDB", JSON.stringify(CUSTOM_FOOD_DB));
+  }
   await loadData();
   toast("📂 Yedek yüklendi");
   e.target.value = "";
@@ -1054,11 +1077,13 @@ async function importBackup(e) {
 // ═══════════════════════════════════════════════════════════════
 // TOAST
 // ═══════════════════════════════════════════════════════════════
+let _toastTimer = null;
 function toast(msg) {
   const el = document.getElementById("toast");
   el.textContent = msg;
   el.classList.add("show");
-  setTimeout(() => el.classList.remove("show"), 2200);
+  if (_toastTimer) clearTimeout(_toastTimer);
+  _toastTimer = setTimeout(() => el.classList.remove("show"), 2200);
 }
 
 // ═══════════════════════════════════════════════════════════════
@@ -1068,6 +1093,11 @@ function renderAll() {
   renderHome();
   renderFav();
 }
+
+// ── DOMContentLoaded: attach gram listener ──
+document.addEventListener("DOMContentLoaded", () => {
+  document.getElementById("grams").addEventListener("input", autoCalcFromGrams);
+});
 
 // ── BAŞLAT ──
 openDB().then(loadData);
